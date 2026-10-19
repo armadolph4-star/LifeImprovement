@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דוח סטטוס פיננסי משפחתי</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7fb;
+            --card-bg: #ffffff;
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-gray: #9ca3af;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        body { 
+            font-family: 'Rubik', Tahoma, sans-serif; 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-color); 
+            direction: rtl; 
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styling */
+        .header { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 40px 20px; 
+            text-align: center; 
+            border-radius: 16px; 
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.2);
+            position: relative;
+        }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.5rem; outline: none; }
+        .header p { margin: 0; opacity: 0.9; font-size: 1.1rem; outline: none; }
+        .header [contenteditable="true"]:hover { background-color: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        /* Server Status Badge */
+        .server-status {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-dot { height: 8px; width: 8px; background-color: #fca5a5; border-radius: 50%; }
+        .status-dot.active { background-color: #6ee7b7; }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-top: 5px solid var(--accent-green);
+        }
+        .control-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .control-panel h2 { margin: 0; color: var(--primary); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f9fafb; padding: 10px 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; justify-content: space-between; }
+        .file-actions, .version-actions { display: flex; gap: 10px; align-items: center; }
+        .version-actions { border-right: 2px solid #e5e7eb; padding-right: 15px; }
+        
+        .btn-action { background: #ffffff; border: 1px solid #d1d5db; color: var(--text-main); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; gap: 6px; font-weight: 500; font-family: inherit; }
+        .btn-action:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .btn-primary-action { background: var(--accent-green); color: white; border: none; }
+        .btn-primary-action:hover { background: #059669; }
+        .btn-clear { background: none; border: 1px solid #fca5a5; color: var(--accent-red); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; font-family: inherit; }
+        .btn-clear:hover { background: #fee2e2; }
+        
+        .version-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; font-family: inherit; background: white; font-weight: 500; color: var(--primary); outline: none; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; margin-top: 20px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+        input, select { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit; font-size: 0.95rem; transition: all 0.3s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.3s, transform 0.1s; height: 42px; font-family: inherit; }
+        .btn-add:hover { background-color: var(--secondary); }
+        .btn-add:active { transform: scale(0.98); }
+
+        /* Sections */
+        .section { background-color: var(--card-bg); padding: 30px; margin-bottom: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .section-header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 25px; }
+        .section-header h2 { margin: 0; color: var(--text-main); font-size: 1.6rem; }
+        
+        /* TOC */
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-list li { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e5e7eb; font-size: 1.1rem; }
+        .toc-list li::before { content: '📌'; margin-left: 10px; }
+
+        /* Small Dive (Summaries) */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .chart-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: #f9fafb; border-radius: 16px; padding: 25px; min-height: 250px; border: 1px solid #f3f4f6; }
+        .chart-container h3 { margin-top: 0; margin-bottom: 20px; color: var(--primary); font-size: 1.3rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; width: 100%; text-align: center; }
+        
+        .pie-chart { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(#e5e7eb 0% 100%); margin-bottom: 15px; transition: background 0.5s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .chart-legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 0.85rem; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; }
+        
+        .total-display { margin-top: 15px; color: var(--text-main); font-size: 1.4rem; font-weight: bold; margin-bottom: 0; }
+        .status-summary { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #d1d5db; width: 100%; text-align: center; font-size: 0.95rem; line-height: 1.6; }
+
+        /* Deep Dive (Tables) */
+        details { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
+        summary { background: white; padding: 15px 20px; font-size: 1.2rem; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; align-items: center; outline: none; }
+        summary:hover { background: #f3f4f6; }
+        .table-container { padding: 20px; background: white; border-top: 1px solid #e5e7eb; overflow-x: auto; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; }
+        th { background-color: #f9fafb; font-weight: 500; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover td { background-color: #f9fafb; }
+        .amount-cell { font-weight: 600; color: var(--text-main); direction: ltr; text-align: right; }
+        .delete-btn { color: var(--accent-red); background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; transition: 0.3s; }
+        .delete-btn:hover { opacity: 1; }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 30px; font-style: italic; background: #ffffff; border-radius: 8px; }
+
+        /* Tags */
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .tag-status-free { background-color: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+        .tag-status-locked { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .no-print-save { text-align: center; margin-top: 40px; padding: 20px; }
+
+        /* Print Optimization */
+        @media print {
+            .control-panel, .no-print-save, .delete-btn { display: none !important; }
+            body { background: white; }
+            .header { box-shadow: none; color: black; background: white; border-bottom: 2px solid #000; }
+            .section { box-shadow: none; border: 1px solid #e5e7eb; margin-bottom: 20px; page-break-inside: avoid; }
+            
+            /* Ensure deep dives are expanded on print */
+            details { display: block; border-bottom: none; }
+            details[open] summary ~ * { display: block; }
+            summary { pointer-events: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1. Header -->
+        <div class="header">
+            <div class="server-status no-print-save" id="serverStatus" title="מציין האם הדוח מסוגל לטעון נתונים מהתיקייה אוטומטית">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">מצב מקומי (ללא שרת)</span>
+            </div>
+            <h1 contenteditable="true" id="reportTitle">דוח תמונת מצב פיננסית</h1>
+            <p contenteditable="true" id="reportSubtitle">הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]</p>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-header">
+                <h2>➕ הוספת נתונים וניהול גרסאות</h2>
+            </div>
+            
+            <div class="toolbar">
+                <div class="file-actions">
+                    <button class="btn-action" onclick="document.getElementById('fileUpload').click()" title="טען נתונים מקובץ">📂 פתח קובץ</button>
+                    <input type="file" id="fileUpload" style="display: none;" accept=".json" onchange="importData(event)">
+                    <button class="btn-action btn-primary-action" onclick="exportData()" title="שמור את כל הגרסאות לקובץ אחד בתיקייה">💾 שמור נתונים (קובץ מאוחד)</button>
+                    <button class="btn-clear" onclick="clearData()" title="נקה את המסך מנתונים">🗑️ נקה מסך</button>
+                </div>
+                
+                <div class="version-actions">
+                    <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">גרסה פעילה:</span>
+                    <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)"></select>
+                    <button class="btn-action" onclick="createSnapshot()" title="שומר את המצב הנוכחי כגרסה חדשה בהיסטוריה">📸 צור תמונת מצב חדשה</button>
+                </div>
+            </div>
+            
+            <form id="dataForm" onsubmit="handleFormSubmit(event)">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>תיאור (למשל: RSU, עו"ש)</label>
+                        <input type="text" id="descInput" required placeholder="הכנס תיאור חופשי...">
+                    </div>
+                    <div class="input-group">
+                        <label>קטגוריה</label>
+                        <select id="categoryInput" required>
+                            <option value="עו״ש">עו״ש (מזומן)</option>
+                            <option value="שוק ההון">שוק ההון</option>
+                            <option value="פנסיה">פנסיה</option>
+                            <option value="קרן השתלמות">קרן השתלמות</option>
+                            <option value="נדל״ן / דירה">נדל״ן / דירה</option>
+                            <option value="הלוואות / חובות">הלוואות / חובות (בנייה/רכב)</option>
+                            <option value="אחר">אחר</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>בעלות</label>
+                        <select id="ownerInput" required>
+                            <option value="שלי">שלי</option>
+                            <option value="נעמה">נעמה</option>
+                            <option value="משותף">משותף</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>סטטוס נזילות / ייעוד</label>
+                        <select id="liquidityInput" required>
+                            <option value="חופשי">🟢 חופשי (לצבירה/השקעה)</option>
+                            <option value="נעול">🔒 נעול (משוריין להוצאה/בנייה)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>סכום (₪)</label>
+                        <input type="number" id="amountInput" required placeholder="למשל: 150000">
+                    </div>
+                    <button type="submit" class="btn-add">הוסף נתון</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. TOC -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📑 תוכן עניינים ומטרות הפגישה</h2>
+            </div>
+            <ul class="toc-list" contenteditable="true">
+                <li>תמונת מצב - הצגת חלוקת ההון הנוכחית בין נזיל, פנסיוני ונדל"ן.</li>
+                <li>תקצוב בנייה - סקירת הכספים המשוריינים (נעולים) מול התחייבויות לפרויקט הבית בשפיים.</li>
+                <li>אופטימיזציה - בחינת מסלולי השקעה של הכסף החופשי (RSU / שוק ההון).</li>
+                <li>ירידה לפרטים - מעבר רזולוטיבי על הנתונים הגולמיים בטבלאות המצורפות מטה.</li>
+            </ul>
+        </div>
+
+        <!-- 3. Small Dive Per Section (All Sections Overview) -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📊 תמונת מצב - תקציר מנהלים</h2>
+            </div>
+            <div class="summary-grid">
+                <!-- Liquid Summary -->
+                <div class="chart-container">
+                    <h3>💸 נכסים נזילים ותיקי השקעות</h3>
+                    <div class="pie-chart" id="liquidPieChart"></div>
+                    <div class="chart-legend" id="liquidLegend"></div>
+                    <p class="total-display">סה"כ: <span id="liquidTotal">0</span> ₪</p>
+                    <div class="status-summary" id="liquidStatusSummary"></div>
+                </div>
+
+                <!-- Pension Summary -->
+                <div class="chart-container">
+                    <h3>📈 פנסיה וחיסכון ארוך טווח</h3>
+                    <div class="pie-chart" id="pensionPieChart"></div>
+                    <div class="chart-legend" id="pensionLegend"></div>
+                    <p class="total-display">סה"כ: <span id="pensionTotal">0</span> ₪</p>
+                </div>
+
+                <!-- Real Estate Summary -->
+                <div class="chart-container" style="border: 2px dashed #e5e7eb;">
+                    <h3>🏠 נדל"ן והתחייבויות</h3>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-top: 20px; color: var(--accent-orange);" id="netRealEstate">0 ₪</div>
+                    <div style="margin-top: 15px; font-size: 1.1rem; color: var(--text-muted); text-align: center;">מאזן נטו<br>(סה"כ נכסים פחות סה"כ חובות)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Deep Dive Per Section (Collapsible Tables) -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🔍 ירידה לפרטים - נתונים מלאים</h2>
+            </div>
+            
+            <details open>
+                <summary>💸 פירוט נכסים נזילים ותיקי השקעות</summary>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                        <tbody id="liquidTableBody"></tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details>
+                <summary>📈 פירוט פנסיה וחיסכון לטווח ארוך</summary>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                        <tbody id="pensionTableBody"></tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details>
+                <summary>🏠 פירוט נדל"ן והתחייבויות אשראי</summary>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                        <tbody id="realEstateTableBody"></tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
+        <div class="no-print-save">
+            <button class="btn-add" style="background: var(--accent-green);" onclick="prepareAndPrint()">🖨️ הדפס דוח פיננסי או שמור כ-PDF לפגישה</button>
+        </div>
+    </div>
+
+    <script>
+        let dataLedger = {
+            versions: [{ id: "v_" + Date.now(), name: "בסיס - " + new Date().toLocaleDateString('he-IL'), data: [] }],
+            title: "דוח תמונת מצב פיננסית",
+            subtitle: "הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]"
+        };
+        let currentVersionId = dataLedger.versions[0].id;
+        const TARGET_FILE_NAME = "financial_data.json";
+
+        const categoryColors = {
+            "עו״ש": "var(--accent-blue)", "שוק ההון": "var(--accent-purple)", "פנסיה": "var(--accent-green)",
+            "קרן השתלמות": "#059669", "נדל״ן / דירה": "var(--accent-orange)", "הלוואות / חובות": "var(--accent-red)",
+            "אחר": "var(--accent-gray)"
+        };
+
+        async function init() {
+            if (window.location.protocol.startsWith('http')) {
+                document.getElementById('statusDot').classList.add('active');
+                document.getElementById('statusText').innerText = "מחובר לשרת - טוען נתונים...";
+                try {
+                    const response = await fetch(TARGET_FILE_NAME + '?t=' + Date.now());
+                    if (response.ok) {
+                        const loadedData = await response.json();
+                        loadLedger(loadedData);
+                        document.getElementById('statusText').innerText = "נטען אוטומטית מקובץ";
+                    } else {
+                        document.getElementById('statusText').innerText = "קובץ נתונים טרם נוצר בתיקייה";
+                        updateVersionDropdown(); renderData();
+                    }
+                } catch (error) {
+                    document.getElementById('statusText').innerText = "שגיאה בטעינת קובץ אוטומטית";
+                    updateVersionDropdown(); renderData();
+                }
+            } else {
+                document.getElementById('statusText').innerText = "מצב אופליין (העלה קובץ ידנית)";
+                updateVersionDropdown(); renderData();
+            }
+        }
+
+        function getCurrentVersionIndex() { return dataLedger.versions.findIndex(v => v.id === currentVersionId); }
+        function getCurrentData() { const idx = getCurrentVersionIndex(); return idx >= 0 ? dataLedger.versions[idx].data : []; }
+
+        function createSnapshot() {
+            const currentData = getCurrentData();
+            const snapshotName = prompt("הכנס שם לגרסה החדשה:");
+            if (snapshotName) {
+                const newVersion = { id: "v_" + Date.now(), name: snapshotName, data: JSON.parse(JSON.stringify(currentData)) };
+                dataLedger.versions.push(newVersion); currentVersionId = newVersion.id;
+                updateVersionDropdown(); renderData(); alert(`גרסה '${snapshotName}' נוצרה בהצלחה.`);
+            }
+        }
+
+        function switchVersion(versionId) { currentVersionId = versionId; renderData(); }
+
+        function updateVersionDropdown() {
+            const select = document.getElementById('versionSelect'); select.innerHTML = '';
+            for (let i = dataLedger.versions.length - 1; i >= 0; i--) {
+                const option = document.createElement('option');
+                option.value = dataLedger.versions[i].id; option.innerText = dataLedger.versions[i].name;
+                if (dataLedger.versions[i].id === currentVersionId) option.selected = true;
+                select.appendChild(option);
+            }
+        }
+
+        function exportData() {
+            dataLedger.title = document.getElementById('reportTitle').innerText;
+            dataLedger.subtitle = document.getElementById('reportSubtitle').innerText;
+            const blob = new Blob([JSON.stringify(dataLedger, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = TARGET_FILE_NAME; 
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try { loadLedger(JSON.parse(e.target.result)); document.getElementById('fileUpload').value = ''; } 
+                catch(err) { alert("שגיאה בטעינת הקובץ. ודא שזהו קובץ JSON תקין."); }
+            }; reader.readAsText(file);
+        }
+
+        function loadLedger(loadedData) {
+            if (loadedData && loadedData.data && !loadedData.versions) {
+                dataLedger = {
+                    title: loadedData.title || "דוח תמונת מצב פיננסית", subtitle: loadedData.subtitle || "",
+                    versions: [{ id: "v_" + Date.now(), name: "גרסה מיובאת (ישנה)", data: loadedData.data }]
+                };
+                currentVersionId = dataLedger.versions[0].id;
+                alert("קובץ בגרסה ישנה זוהה ושודרג למערכת הגרסאות החדשה.");
+            } else if (loadedData && loadedData.versions && Array.isArray(loadedData.versions)) {
+                dataLedger = loadedData; currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
+            } else { alert("מבנה קובץ אינו תואם."); return; }
+            
+            if(dataLedger.title) document.getElementById('reportTitle').innerText = dataLedger.title;
+            if(dataLedger.subtitle) document.getElementById('reportSubtitle').innerText = dataLedger.subtitle;
+            updateVersionDropdown(); renderData();
+        }
+
+        function clearData() {
+            if (confirm("האם למחוק נתונים מהגרסה הנוכחית בלבד?")) {
+                dataLedger.versions[getCurrentVersionIndex()].data = []; renderData();
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const item = {
+                id: Date.now().toString(), desc: document.getElementById('descInput').value,
+                category: document.getElementById('categoryInput').value, owner: document.getElementById('ownerInput').value,
+                liquidity: document.getElementById('liquidityInput').value, amount: parseFloat(document.getElementById('amountInput').value)
+            };
+            dataLedger.versions[getCurrentVersionIndex()].data.push(item);
+            document.getElementById('descInput').value = ''; document.getElementById('amountInput').value = ''; document.getElementById('descInput').focus();
+            renderData();
+        }
+
+        function deleteItem(id) {
+            const idx = getCurrentVersionIndex();
+            dataLedger.versions[idx].data = dataLedger.versions[idx].data.filter(item => item.id !== id);
+            renderData();
+        }
+
+        function formatCurrency(num) { return new Intl.NumberFormat('he-IL').format(num); }
+        function getTagStyle(category) { const color = categoryColors[category] || categoryColors["אחר"]; return `background-color: ${color}20; color: ${color}; border: 1px solid ${color}40;`; }
+        function getLiquidityBadge(status) {
+            if (status === 'נעול') return '<span class="tag tag-status-locked">🔒 נעול לבנייה/הוצאה</span>';
+            return '<span class="tag tag-status-free">🟢 חופשי להשקעה</span>';
+        }
+
+        function renderData() {
+            const liquidBody = document.getElementById('liquidTableBody');
+            const pensionBody = document.getElementById('pensionTableBody');
+            const realEstateBody = document.getElementById('realEstateTableBody');
+
+            liquidBody.innerHTML = ''; pensionBody.innerHTML = ''; realEstateBody.innerHTML = '';
+            let liquidData = [], pensionData = [], realEstateData = [];
+
+            getCurrentData().forEach(item => {
+                const tr = document.createElement('tr');
+                let amountColor = item.category === "הלוואות / חובות" ? "var(--accent-red)" : "var(--text-main)";
+                let displayAmount = formatCurrency(item.category === "הלוואות / חובות" ? -Math.abs(item.amount) : item.amount);
+
+                tr.innerHTML = `
+                    <td><span class="tag" style="${getTagStyle(item.category)}">${item.category}</span></td>
+                    <td>${item.desc}</td><td>${item.owner}</td><td>${getLiquidityBadge(item.liquidity)}</td>
+                    <td class="amount-cell" style="color:${amountColor};">${displayAmount} ₪</td>
+                    <td><button class="delete-btn" onclick="deleteItem('${item.id}')" title="מחק">✖</button></td>
+                `;
+
+                if (["עו״ש", "שוק ההון", "אחר"].includes(item.category)) { liquidData.push(item); liquidBody.appendChild(tr); } 
+                else if (["פנסיה", "קרן השתלמות"].includes(item.category)) { pensionData.push(item); pensionBody.appendChild(tr); } 
+                else { realEstateData.push(item); realEstateBody.appendChild(tr); }
+            });
+
+            if(liquidData.length === 0) liquidBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
+            if(pensionData.length === 0) pensionBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
+            if(realEstateData.length === 0) realEstateBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
+
+            updateCharts(liquidData, pensionData, realEstateData);
+        }
+
+        function updateCharts(liquid, pension, realEstate) {
+            let liquidTotal = 0, liquidFreeSum = 0, liquidLockedSum = 0;
+            liquid.forEach(i => { liquidTotal += i.amount; if (i.liquidity === 'נעול') liquidLockedSum += i.amount; else liquidFreeSum += i.amount; });
+            document.getElementById('liquidTotal').innerText = formatCurrency(liquidTotal);
+            document.getElementById('liquidStatusSummary').innerHTML = `🟢 חופשי: <strong style="color: #059669;">${formatCurrency(liquidFreeSum)} ₪</strong><br>🔒 משוריין: <strong style="color: #dc2626;">${formatCurrency(liquidLockedSum)} ₪</strong>`;
+            applyPieChart('liquidPieChart', 'liquidLegend', {"חופשי (זמין)": liquidFreeSum, "נעול (משוריין)": liquidLockedSum}, liquidTotal, {"חופשי (זמין)": "#059669", "נעול (משוריין)": "#ef4444"});
+
+            const pensionCategories = {"פנסיה": 0, "קרן השתלמות": 0}; let pensionTotal = 0;
+            pension.forEach(i => { pensionCategories[i.category] += i.amount; pensionTotal += i.amount; });
+            document.getElementById('pensionTotal').innerText = formatCurrency(pensionTotal);
+            applyPieChart('pensionPieChart', 'pensionLegend', pensionCategories, pensionTotal, categoryColors);
+
+            let assets = 0, debts = 0;
+            realEstate.forEach(i => { if (i.category === "הלוואות / חובות") debts += Math.abs(i.amount); else assets += i.amount; });
+            const netRealEstate = assets - debts;
+            const netDisplay = document.getElementById('netRealEstate');
+            netDisplay.innerText = formatCurrency(netRealEstate) + " ₪";
+            netDisplay.style.color = netRealEstate >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+        }
+
+        function applyPieChart(chartId, legendId, categoriesMap, total, colorMap) {
+            const chart = document.getElementById(chartId); const legend = document.getElementById(legendId);
+            legend.innerHTML = ''; if (total === 0) { chart.style.background = 'conic-gradient(#e5e7eb 0% 100%)'; return; }
+            let gradientString = '', startPercent = 0;
+            for (const [category, amount] of Object.entries(categoriesMap)) {
+                if (amount > 0) {
+                    const percent = (amount / total) * 100; const endPercent = startPercent + percent;
+                    const color = colorMap[category] || "gray";
+                    gradientString += `${color} ${startPercent}% ${endPercent}%, `; startPercent = endPercent;
+                    legend.innerHTML += `<div class="legend-item"><div class="legend-color" style="background-color: ${color};"></div><span>${category} (${Math.round(percent)}%)</span></div>`;
+                }
+            }
+            chart.style.background = `conic-gradient(${gradientString.slice(0, -2)})`;
+        }
+
+        function prepareAndPrint() {
+            document.querySelectorAll('details').forEach(detail => detail.setAttribute('open', 'true'));
+            setTimeout(() => window.print(), 100);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
