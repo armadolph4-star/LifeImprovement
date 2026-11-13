@@ -44,7 +44,7 @@
             padding: 40px 20px; 
             text-align: center; 
             border-radius: 16px; 
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 10px 25px rgba(67, 97, 238, 0.2);
             position: relative;
         }
@@ -68,21 +68,25 @@
         .status-dot { height: 8px; width: 8px; background-color: #fca5a5; border-radius: 50%; }
         .status-dot.active { background-color: #6ee7b7; }
 
-        /* Control Panel */
-        .control-panel {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            border-top: 5px solid var(--accent-green);
+        /* Global Toolbar */
+        .toolbar { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            align-items: center; 
+            background: var(--card-bg); 
+            padding: 15px 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            margin-bottom: 20px; 
+            justify-content: space-between; 
+            border-top: 4px solid var(--accent-green);
         }
-        .control-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .control-panel h2 { margin: 0; color: var(--primary); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
-        
-        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f9fafb; padding: 10px 15px; border-radius: 8px; border: 1px solid #e5e7eb; width: 100%; justify-content: space-between; }
-        .file-actions, .version-actions { display: flex; gap: 10px; align-items: center; }
+        .file-actions, .version-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .version-actions { border-right: 2px solid #e5e7eb; padding-right: 15px; }
+        @media (max-width: 768px) {
+            .version-actions { border-right: none; padding-right: 0; border-top: 1px solid #e5e7eb; padding-top: 10px; width: 100%; }
+        }
         
         .btn-action { background: #ffffff; border: 1px solid #d1d5db; color: var(--text-main); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; gap: 6px; font-weight: 500; font-family: inherit; }
         .btn-action:hover { background: #f3f4f6; border-color: #9ca3af; }
@@ -93,7 +97,58 @@
         
         .version-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; font-family: inherit; background: white; font-weight: 500; color: var(--primary); outline: none; }
 
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; margin-top: 20px; }
+        /* Tab Navigation (.tab-nav) */
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #e5e7eb;
+            padding: 6px;
+            border-radius: 12px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-align: center;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Control Panel / Form Card */
+        .control-panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+            border-top: 4px solid var(--primary);
+        }
+        .control-panel h2 { margin: 0 0 20px 0; color: var(--primary); font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; }
         .input-group { display: flex; flex-direction: column; gap: 5px; }
         .input-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
         input, select { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit; font-size: 0.95rem; transition: all 0.3s; }
@@ -149,9 +204,10 @@
 
         /* Print Optimization */
         @media print {
-            .control-panel, .no-print-save, .delete-btn { display: none !important; }
+            .toolbar, .tab-nav, .control-panel, .no-print-save, .delete-btn { display: none !important; }
             body { background: white; }
             .header { box-shadow: none; color: black; background: white; border-bottom: 2px solid #000; }
+            .tab-panel { display: block !important; }
             .section { box-shadow: none; border: 1px solid #e5e7eb; margin-bottom: 20px; page-break-inside: avoid; }
             
             /* Ensure deep dives are expanded on print */
@@ -174,149 +230,159 @@
             <p contenteditable="true" id="reportSubtitle">הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]</p>
         </div>
 
-        <!-- Control Panel -->
-        <div class="control-panel">
-            <div class="control-header">
-                <h2>➕ הוספת נתונים וניהול גרסאות</h2>
+        <!-- Global Toolbar -->
+        <div class="toolbar">
+            <div class="file-actions">
+                <button class="btn-action" onclick="document.getElementById('fileUpload').click()" title="טען נתונים מקובץ">📂 פתח קובץ</button>
+                <input type="file" id="fileUpload" style="display: none;" accept=".json" onchange="importData(event)">
+                <button class="btn-action btn-primary-action" onclick="exportData()" title="שמור את כל הגרסאות לקובץ אחד בתיקייה">💾 שמור נתונים (קובץ מאוחד)</button>
+                <button class="btn-clear" onclick="clearData()" title="נקה את המסך מנתונים">🗑️ נקה מסך</button>
             </div>
             
-            <div class="toolbar">
-                <div class="file-actions">
-                    <button class="btn-action" onclick="document.getElementById('fileUpload').click()" title="טען נתונים מקובץ">📂 פתח קובץ</button>
-                    <input type="file" id="fileUpload" style="display: none;" accept=".json" onchange="importData(event)">
-                    <button class="btn-action btn-primary-action" onclick="exportData()" title="שמור את כל הגרסאות לקובץ אחד בתיקייה">💾 שמור נתונים (קובץ מאוחד)</button>
-                    <button class="btn-clear" onclick="clearData()" title="נקה את המסך מנתונים">🗑️ נקה מסך</button>
+            <div class="version-actions">
+                <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">גרסה פעילה:</span>
+                <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)"></select>
+                <button class="btn-action" onclick="createSnapshot()" title="שומר את המצב הנוכחי כגרסה חדשה בהיסטוריה">📸 צור תמונת מצב חדשה</button>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('tabOverview')">מבט על</button>
+            <button class="tab-btn" onclick="switchTab('tabData')">נתונים</button>
+        </div>
+
+        <!-- Tab 1: מבט על -->
+        <div id="tabOverview" class="tab-panel active">
+            <!-- TOC -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📑 תוכן עניינים ומטרות הפגישה</h2>
+                </div>
+                <ul class="toc-list" contenteditable="true">
+                    <li>תמונת מצב - הצגת חלוקת ההון הנוכחית בין נזיל, פנסיוני ונדל"ן.</li>
+                    <li>תקצוב בנייה - סקירת הכספים המשוריינים (נעולים) מול התחייבויות לפרויקט הבית בשפיים.</li>
+                    <li>אופטימיזציה - בחינת מסלולי השקעה של הכסף החופשי (RSU / שוק ההון).</li>
+                    <li>ירידה לפרטים - מעבר רזולוטיבי על הנתונים הגולמיים בטבלאות המצורפות מטה.</li>
+                </ul>
+            </div>
+
+            <!-- Small Dive (Summaries) -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📊 תמונת מצב - תקציר מנהלים</h2>
+                </div>
+                <div class="summary-grid">
+                    <!-- Liquid Summary -->
+                    <div class="chart-container">
+                        <h3>💸 נכסים נזילים ותיקי השקעות</h3>
+                        <div class="pie-chart" id="liquidPieChart"></div>
+                        <div class="chart-legend" id="liquidLegend"></div>
+                        <p class="total-display">סה"כ: <span id="liquidTotal">0</span> ₪</p>
+                        <div class="status-summary" id="liquidStatusSummary"></div>
+                    </div>
+
+                    <!-- Pension Summary -->
+                    <div class="chart-container">
+                        <h3>📈 פנסיה וחיסכון ארוך טווח</h3>
+                        <div class="pie-chart" id="pensionPieChart"></div>
+                        <div class="chart-legend" id="pensionLegend"></div>
+                        <p class="total-display">סה"כ: <span id="pensionTotal">0</span> ₪</p>
+                    </div>
+
+                    <!-- Real Estate Summary -->
+                    <div class="chart-container" style="border: 2px dashed #e5e7eb;">
+                        <h3>🏠 נדל"ן והתחייבויות</h3>
+                        <div style="font-size: 2.5rem; font-weight: bold; margin-top: 20px; color: var(--accent-orange);" id="netRealEstate">0 ₪</div>
+                        <div style="margin-top: 15px; font-size: 1.1rem; color: var(--text-muted); text-align: center;">מאזן נטו<br>(סה"כ נכסים פחות סה"כ חובות)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: נתונים -->
+        <div id="tabData" class="tab-panel">
+            <!-- Control Panel / Add Data Form -->
+            <div class="control-panel">
+                <h2>➕ הוספת נתונים</h2>
+                <form id="dataForm" onsubmit="handleFormSubmit(event)">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>תיאור (למשל: RSU, עו"ש)</label>
+                            <input type="text" id="descInput" required placeholder="הכנס תיאור חופשי...">
+                        </div>
+                        <div class="input-group">
+                            <label>קטגוריה</label>
+                            <select id="categoryInput" required>
+                                <option value="עו״ש">עו״ש (מזומן)</option>
+                                <option value="שוק ההון">שוק ההון</option>
+                                <option value="פנסיה">פנסיה</option>
+                                <option value="קרן השתלמות">קרן השתלמות</option>
+                                <option value="נדל״ן / דירה">נדל״ן / דירה</option>
+                                <option value="הלוואות / חובות">הלוואות / חובות (בנייה/רכב)</option>
+                                <option value="אחר">אחר</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>בעלות</label>
+                            <select id="ownerInput" required>
+                                <option value="שלי">שלי</option>
+                                <option value="נעמה">נעמה</option>
+                                <option value="משותף">משותף</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>סטטוס נזילות / ייעוד</label>
+                            <select id="liquidityInput" required>
+                                <option value="חופשי">🟢 חופשי (לצבירה/השקעה)</option>
+                                <option value="נעול">🔒 נעול (משוריין להוצאה/בנייה)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>סכום (₪)</label>
+                            <input type="number" id="amountInput" required placeholder="למשל: 150000">
+                        </div>
+                        <button type="submit" class="btn-add">הוסף נתון</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Deep Dive (Tables) -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔍 ירידה לפרטים - נתונים מלאים</h2>
                 </div>
                 
-                <div class="version-actions">
-                    <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">גרסה פעילה:</span>
-                    <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)"></select>
-                    <button class="btn-action" onclick="createSnapshot()" title="שומר את המצב הנוכחי כגרסה חדשה בהיסטוריה">📸 צור תמונת מצב חדשה</button>
-                </div>
-            </div>
-            
-            <form id="dataForm" onsubmit="handleFormSubmit(event)">
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label>תיאור (למשל: RSU, עו"ש)</label>
-                        <input type="text" id="descInput" required placeholder="הכנס תיאור חופשי...">
+                <details open>
+                    <summary>💸 פירוט נכסים נזילים ותיקי השקעות</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                            <tbody id="liquidTableBody"></tbody>
+                        </table>
                     </div>
-                    <div class="input-group">
-                        <label>קטגוריה</label>
-                        <select id="categoryInput" required>
-                            <option value="עו״ש">עו״ש (מזומן)</option>
-                            <option value="שוק ההון">שוק ההון</option>
-                            <option value="פנסיה">פנסיה</option>
-                            <option value="קרן השתלמות">קרן השתלמות</option>
-                            <option value="נדל״ן / דירה">נדל״ן / דירה</option>
-                            <option value="הלוואות / חובות">הלוואות / חובות (בנייה/רכב)</option>
-                            <option value="אחר">אחר</option>
-                        </select>
+                </details>
+
+                <details>
+                    <summary>📈 פירוט פנסיה וחיסכון לטווח ארוך</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                            <tbody id="pensionTableBody"></tbody>
+                        </table>
                     </div>
-                    <div class="input-group">
-                        <label>בעלות</label>
-                        <select id="ownerInput" required>
-                            <option value="שלי">שלי</option>
-                            <option value="נעמה">נעמה</option>
-                            <option value="משותף">משותף</option>
-                        </select>
+                </details>
+
+                <details>
+                    <summary>🏠 פירוט נדל"ן והתחייבויות אשראי</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
+                            <tbody id="realEstateTableBody"></tbody>
+                        </table>
                     </div>
-                    <div class="input-group">
-                        <label>סטטוס נזילות / ייעוד</label>
-                        <select id="liquidityInput" required>
-                            <option value="חופשי">🟢 חופשי (לצבירה/השקעה)</option>
-                            <option value="נעול">🔒 נעול (משוריין להוצאה/בנייה)</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>סכום (₪)</label>
-                        <input type="number" id="amountInput" required placeholder="למשל: 150000">
-                    </div>
-                    <button type="submit" class="btn-add">הוסף נתון</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- 2. TOC -->
-        <div class="section">
-            <div class="section-header">
-                <h2>📑 תוכן עניינים ומטרות הפגישה</h2>
+                </details>
             </div>
-            <ul class="toc-list" contenteditable="true">
-                <li>תמונת מצב - הצגת חלוקת ההון הנוכחית בין נזיל, פנסיוני ונדל"ן.</li>
-                <li>תקצוב בנייה - סקירת הכספים המשוריינים (נעולים) מול התחייבויות לפרויקט הבית בשפיים.</li>
-                <li>אופטימיזציה - בחינת מסלולי השקעה של הכסף החופשי (RSU / שוק ההון).</li>
-                <li>ירידה לפרטים - מעבר רזולוטיבי על הנתונים הגולמיים בטבלאות המצורפות מטה.</li>
-            </ul>
-        </div>
-
-        <!-- 3. Small Dive Per Section (All Sections Overview) -->
-        <div class="section">
-            <div class="section-header">
-                <h2>📊 תמונת מצב - תקציר מנהלים</h2>
-            </div>
-            <div class="summary-grid">
-                <!-- Liquid Summary -->
-                <div class="chart-container">
-                    <h3>💸 נכסים נזילים ותיקי השקעות</h3>
-                    <div class="pie-chart" id="liquidPieChart"></div>
-                    <div class="chart-legend" id="liquidLegend"></div>
-                    <p class="total-display">סה"כ: <span id="liquidTotal">0</span> ₪</p>
-                    <div class="status-summary" id="liquidStatusSummary"></div>
-                </div>
-
-                <!-- Pension Summary -->
-                <div class="chart-container">
-                    <h3>📈 פנסיה וחיסכון ארוך טווח</h3>
-                    <div class="pie-chart" id="pensionPieChart"></div>
-                    <div class="chart-legend" id="pensionLegend"></div>
-                    <p class="total-display">סה"כ: <span id="pensionTotal">0</span> ₪</p>
-                </div>
-
-                <!-- Real Estate Summary -->
-                <div class="chart-container" style="border: 2px dashed #e5e7eb;">
-                    <h3>🏠 נדל"ן והתחייבויות</h3>
-                    <div style="font-size: 2.5rem; font-weight: bold; margin-top: 20px; color: var(--accent-orange);" id="netRealEstate">0 ₪</div>
-                    <div style="margin-top: 15px; font-size: 1.1rem; color: var(--text-muted); text-align: center;">מאזן נטו<br>(סה"כ נכסים פחות סה"כ חובות)</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Deep Dive Per Section (Collapsible Tables) -->
-        <div class="section">
-            <div class="section-header">
-                <h2>🔍 ירידה לפרטים - נתונים מלאים</h2>
-            </div>
-            
-            <details open>
-                <summary>💸 פירוט נכסים נזילים ותיקי השקעות</summary>
-                <div class="table-container">
-                    <table>
-                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                        <tbody id="liquidTableBody"></tbody>
-                    </table>
-                </div>
-            </details>
-
-            <details>
-                <summary>📈 פירוט פנסיה וחיסכון לטווח ארוך</summary>
-                <div class="table-container">
-                    <table>
-                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                        <tbody id="pensionTableBody"></tbody>
-                    </table>
-                </div>
-            </details>
-
-            <details>
-                <summary>🏠 פירוט נדל"ן והתחייבויות אשראי</summary>
-                <div class="table-container">
-                    <table>
-                        <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                        <tbody id="realEstateTableBody"></tbody>
-                    </table>
-                </div>
-            </details>
         </div>
 
         <div class="no-print-save">
@@ -338,6 +404,14 @@
             "קרן השתלמות": "#059669", "נדל״ן / דירה": "var(--accent-orange)", "הלוואות / חובות": "var(--accent-red)",
             "אחר": "var(--accent-gray)"
         };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
 
         async function init() {
             if (window.location.protocol.startsWith('http')) {
@@ -525,6 +599,10 @@
             document.querySelectorAll('details').forEach(detail => detail.setAttribute('open', 'true'));
             setTimeout(() => window.print(), 100);
         }
+
+        window.addEventListener('beforeprint', () => {
+            document.querySelectorAll('details').forEach(detail => detail.setAttribute('open', 'true'));
+        });
 
         window.onload = init;
     </script>

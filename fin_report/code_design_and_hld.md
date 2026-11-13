@@ -7,7 +7,7 @@ This application is a **Zero-Dependency Single-Page Application (SPA)** built en
 *   **Storage:** Data persistence is handled via manual JSON file import/export via the OS native file picker (allowing implicit integration with local Google Drive folders).
 
 ## 2. Data Structure (The "Ledger")
-The application state is maintained in a global `dataLedger` object. It uses a snapshot-based version control system to allow users to compare states (e.g., "Before Meeting" vs. "After Meeting").
+The application state is maintained in a global `dataLedger` object with V3 snapshot-based version control supporting polymorphic entry types (`entryType`).
 
 ```javascript
 let dataLedger = {
@@ -20,17 +20,17 @@ let dataLedger = {
             data: [
                 {
                     id: "timestamp_string",
-                    desc: "Asset/Liability Name",
-                    category: "עו״ש" | "שוק ההון" | "פנסיה" | "קרן השתלמות" | "נדל״ן / דירה" | "הלוואות / חובות" | "אחר",
+                    entryType: "stock" | "realestate" | "pension" | "rsu" | "cash" | "alternative" | "debt",
                     owner: "שלי" | "נעמה" | "משותף",
-                    liquidity: "חופשי" | "נעול",
-                    amount: 150000 // Number (Always positive in state, negated in UI if debt)
+                    currency: "$" | "₪" | "€",
+                    amount: 150000,
+                    // Type-specific fields (e.g., name, desc, region, sharesCount, price, risk, liquidity, etc.)
                 }
             ]
         }
     ]
 };
-```
+
 
 ## 3. Global State Variables
 *   `dataLedger`: The main state object.
@@ -50,5 +50,9 @@ let dataLedger = {
 
 ## 5. Adding New Features (Agent Instructions)
 *   **Adding a new Category:** Add it to the `<select id="categoryInput">` options, assign it a color in `categoryColors`, and update the `if/else` sorting logic inside `renderData()` to route it to the correct table.
-*   **Modifying the UI:** Ensure changes respect the strict DOM hierarchy (Controls -> TOC -> Summaries -> Tables).
+*   **Adding a New Tab:** 
+    1. Add a corresponding navigation `<button class="tab-btn" onclick="switchTab('tabId')">Tab Name</button>` inside `.tab-nav`.
+    2. Create a matching `.tab-panel` container with `id="tabId"` containing the desired section content.
+    3. Verify that `@media print` rules force all `.tab-panel` elements to display properly so that multi-tab content is fully exported during native printing.
+*   **Modifying the UI:** Ensure changes respect the strict DOM hierarchy (Toolbar -> Tab Navigation -> Tab Panels -> Tables).
 *   **State Changes:** Any mutation to data *must* be followed by a call to `renderData()` and *must only* mutate `dataLedger.versions[getCurrentVersionIndex()].data`.
