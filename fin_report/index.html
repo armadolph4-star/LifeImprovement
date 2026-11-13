@@ -153,9 +153,13 @@
         .input-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
         input, select { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: inherit; font-size: 0.95rem; transition: all 0.3s; }
         input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
-        .btn-add { background-color: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.3s, transform 0.1s; height: 42px; font-family: inherit; }
+        input[readonly] { background-color: #f3f4f6; color: var(--text-muted); cursor: not-allowed; }
+        
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; grid-column: 1 / -1; }
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.3s, transform 0.1s; height: 42px; font-family: inherit; }
         .btn-add:hover { background-color: var(--secondary); }
-        .btn-add:active { transform: scale(0.98); }
+        .btn-cancel { background-color: #e5e7eb; color: var(--text-main); border: none; padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; height: 42px; font-family: inherit; }
+        .btn-cancel:hover { background-color: #d1d5db; }
 
         /* Sections */
         .section { background-color: var(--card-bg); padding: 30px; margin-bottom: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -191,8 +195,11 @@
         th { background-color: #f9fafb; font-weight: 500; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
         tr:hover td { background-color: #f9fafb; }
         .amount-cell { font-weight: 600; color: var(--text-main); direction: ltr; text-align: right; }
-        .delete-btn { color: var(--accent-red); background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; transition: 0.3s; }
-        .delete-btn:hover { opacity: 1; }
+        .row-actions { display: flex; gap: 8px; align-items: center; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: 0.3s; }
+        .action-btn:hover { opacity: 1; }
+        .delete-btn { color: var(--accent-red); }
+        .edit-btn { color: var(--primary); }
         .empty-state { text-align: center; color: var(--text-muted); padding: 30px; font-style: italic; background: #ffffff; border-radius: 8px; }
 
         /* Tags */
@@ -204,13 +211,12 @@
 
         /* Print Optimization */
         @media print {
-            .toolbar, .tab-nav, .control-panel, .no-print-save, .delete-btn { display: none !important; }
+            .toolbar, .tab-nav, .control-panel, .no-print-save, .row-actions { display: none !important; }
             body { background: white; }
             .header { box-shadow: none; color: black; background: white; border-bottom: 2px solid #000; }
             .tab-panel { display: block !important; }
             .section { box-shadow: none; border: 1px solid #e5e7eb; margin-bottom: 20px; page-break-inside: avoid; }
             
-            /* Ensure deep dives are expanded on print */
             details { display: block; border-bottom: none; }
             details[open] summary ~ * { display: block; }
             summary { pointer-events: none; }
@@ -304,45 +310,28 @@
         <div id="tabData" class="tab-panel">
             <!-- Control Panel / Add Data Form -->
             <div class="control-panel">
-                <h2>➕ הוספת נתונים</h2>
+                <h2 id="formTitle">➕ הוספת נתון חדש</h2>
                 <form id="dataForm" onsubmit="handleFormSubmit(event)">
                     <div class="form-grid">
                         <div class="input-group">
-                            <label>תיאור (למשל: RSU, עו"ש)</label>
-                            <input type="text" id="descInput" required placeholder="הכנס תיאור חופשי...">
-                        </div>
-                        <div class="input-group">
-                            <label>קטגוריה</label>
-                            <select id="categoryInput" required>
-                                <option value="עו״ש">עו״ש (מזומן)</option>
-                                <option value="שוק ההון">שוק ההון</option>
-                                <option value="פנסיה">פנסיה</option>
-                                <option value="קרן השתלמות">קרן השתלמות</option>
-                                <option value="נדל״ן / דירה">נדל״ן / דירה</option>
-                                <option value="הלוואות / חובות">הלוואות / חובות (בנייה/רכב)</option>
-                                <option value="אחר">אחר</option>
+                            <label>סוג רשומה</label>
+                            <select id="entryTypeSelect" onchange="renderDynamicForm()" required>
+                                <option value="stock">שוק ההון</option>
+                                <option value="realestate">נדל״ן</option>
+                                <option value="pension">פנסיה / קרן השתלמות</option>
+                                <option value="rsu">RSU</option>
+                                <option value="cash">מזומן לא מושקע</option>
+                                <option value="alternative">השקעה אלטרנטיבית</option>
+                                <option value="debt">הלוואות / חובות</option>
                             </select>
                         </div>
-                        <div class="input-group">
-                            <label>בעלות</label>
-                            <select id="ownerInput" required>
-                                <option value="שלי">שלי</option>
-                                <option value="נעמה">נעמה</option>
-                                <option value="משותף">משותף</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>סטטוס נזילות / ייעוד</label>
-                            <select id="liquidityInput" required>
-                                <option value="חופשי">🟢 חופשי (לצבירה/השקעה)</option>
-                                <option value="נעול">🔒 נעול (משוריין להוצאה/בנייה)</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>סכום (₪)</label>
-                            <input type="number" id="amountInput" required placeholder="למשל: 150000">
-                        </div>
-                        <button type="submit" class="btn-add">הוסף נתון</button>
+                    </div>
+                    <div class="form-grid" id="dynamicFieldsContainer" style="margin-top: 15px;">
+                        <!-- Dynamic fields rendered via JS -->
+                    </div>
+                    <div class="form-actions" id="formActionsContainer">
+                        <button type="submit" class="btn-add" id="submitBtn">הוסף רשומה</button>
+                        <button type="button" class="btn-cancel" id="cancelEditBtn" style="display: none;" onclick="cancelEdit()">ביטול</button>
                     </div>
                 </form>
             </div>
@@ -350,35 +339,75 @@
             <!-- Deep Dive (Tables) -->
             <div class="section">
                 <div class="section-header">
-                    <h2>🔍 ירידה לפרטים - נתונים מלאים</h2>
+                    <h2>🔍 ירידה לפרטים - נתונים מלאים לפי סוג</h2>
                 </div>
                 
-                <details open>
-                    <summary>💸 פירוט נכסים נזילים ותיקי השקעות</summary>
+                <details open id="sectionStock">
+                    <summary>📈 שוק ההון</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                            <tbody id="liquidTableBody"></tbody>
+                            <thead><tr><th>שם מניה</th><th>תיאור</th><th>איזור השקעה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableStockBody"></tbody>
                         </table>
                     </div>
                 </details>
 
-                <details>
-                    <summary>📈 פירוט פנסיה וחיסכון לטווח ארוך</summary>
+                <details id="sectionRsu">
+                    <summary>💼 RSU</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                            <tbody id="pensionTableBody"></tbody>
+                            <thead><tr><th>שם חברה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableRsuBody"></tbody>
                         </table>
                     </div>
                 </details>
 
-                <details>
-                    <summary>🏠 פירוט נדל"ן והתחייבויות אשראי</summary>
+                <details id="sectionCash">
+                    <summary>💵 מזומן לא מושקע</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>קטגוריה</th><th>תיאור</th><th>בעלות</th><th>סטטוס נזילות</th><th>סכום (₪)</th><th></th></tr></thead>
-                            <tbody id="realEstateTableBody"></tbody>
+                            <thead><tr><th>סוג</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableCashBody"></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <details id="sectionAlternative">
+                    <summary>🌐 השקעה אלטרנטיבית</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>תיאור</th><th>איזור השקעה</th><th>סטטוס נזילות</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableAlternativeBody"></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <details id="sectionPension">
+                    <summary>🏦 פנסיה / קרן השתלמות</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>קטגוריה</th><th>מסלול</th><th>בית השקעות</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tablePensionBody"></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <details id="sectionRealestate">
+                    <summary>🏠 נדל״ן</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>שם נכס</th><th>סוג</th><th>מדינה</th><th>בעלות</th><th>סכום</th><th>הלוואה/חוב</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableRealestateBody"></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <details id="sectionDebt">
+                    <summary>💳 הלוואות / חובות</summary>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>תיאור</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <tbody id="tableDebtBody"></tbody>
                         </table>
                     </div>
                 </details>
@@ -397,6 +426,7 @@
             subtitle: "הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]"
         };
         let currentVersionId = dataLedger.versions[0].id;
+        let editingId = null;
         const TARGET_FILE_NAME = "financial_data.json";
 
         const categoryColors = {
@@ -414,6 +444,7 @@
         }
 
         async function init() {
+            renderDynamicForm();
             if (window.location.protocol.startsWith('http')) {
                 document.getElementById('statusDot').classList.add('active');
                 document.getElementById('statusText').innerText = "מחובר לשרת - טוען נתונים...";
@@ -439,6 +470,94 @@
 
         function getCurrentVersionIndex() { return dataLedger.versions.findIndex(v => v.id === currentVersionId); }
         function getCurrentData() { const idx = getCurrentVersionIndex(); return idx >= 0 ? dataLedger.versions[idx].data : []; }
+
+        function renderDynamicForm(dataToFill = null) {
+            const type = document.getElementById('entryTypeSelect').value;
+            const container = document.getElementById('dynamicFieldsContainer');
+            container.innerHTML = '';
+
+            const ownerVal = dataToFill ? dataToFill.owner : 'שלי';
+            const currVal = dataToFill ? dataToFill.currency : (type === 'rsu' ? '$' : '₪');
+            const amtVal = dataToFill ? dataToFill.amount : '';
+
+            if (type === 'stock') {
+                container.innerHTML = `
+                    <div class="input-group"><label>שם מניה</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
+                    <div class="input-group"><label>תיאור (אופציונלי)</label><input type="text" id="dyn_desc" value="${dataToFill?.desc || ''}"></div>
+                    <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" required placeholder="למשל: ארה״ב / ישראל" value="${dataToFill?.region || ''}"></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcStockAmount()" value="${dataToFill?.sharesCount || ''}"></div>
+                    <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcStockAmount()" value="${dataToFill?.price || ''}"></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>רמת סיכון</label><select id="dyn_risk"><option value="נמוכה" ${dataToFill?.risk==='נמוכה'?'selected':''}>נמוכה</option><option value="בינונית" ${dataToFill?.risk==='בינונית'?'selected':''}>בינונית</option><option value="גבוהה" ${dataToFill?.risk==='גבוהה'?'selected':''}>גבוהה</option></select></div>
+                    <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
+                `;
+            } else if (type === 'realestate') {
+                container.innerHTML = `
+                    <div class="input-group"><label>שם נכס</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
+                    <div class="input-group"><label>סוג נכס</label><select id="dyn_realtyType"><option value="השקעה" ${dataToFill?.realtyType==='השקעה'?'selected':''}>השקעה</option><option value="מגורים" ${dataToFill?.realtyType==='מגורים'?'selected':''}>מגורים</option></select></div>
+                    <div class="input-group"><label>מדינה</label><input type="text" id="dyn_country" required value="${dataToFill?.country || ''}"></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>סכום (שווי)</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                    <div class="input-group"><label>הלוואה / חוב</label><input type="number" step="any" id="dyn_debtAmount" value="${dataToFill?.debtAmount || 0}"></div>
+                `;
+            } else if (type === 'pension') {
+                container.innerHTML = `
+                    <div class="input-group"><label>קטגוריה</label><select id="dyn_pensionCategory"><option value="פנסיה" ${dataToFill?.pensionCategory==='פנסיה'?'selected':''}>פנסיה</option><option value="קרן השתלמות" ${dataToFill?.pensionCategory==='קרן השתלמות'?'selected':''}>קרן השתלמות</option></select></div>
+                    <div class="input-group"><label>מסלול</label><input type="text" id="dyn_track" required value="${dataToFill?.track || ''}"></div>
+                    <div class="input-group"><label>בית השקעות</label><input type="text" id="dyn_fundHouse" required value="${dataToFill?.fundHouse || ''}"></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option></select></div>
+                    <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                `;
+            } else if (type === 'rsu') {
+                container.innerHTML = `
+                    <div class="input-group"><label>שם חברה</label><input type="text" id="dyn_companyName" required value="${dataToFill?.companyName || ''}"></div>
+                    <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcRsuAmount()" value="${dataToFill?.sharesCount || ''}"></div>
+                    <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcRsuAmount()" value="${dataToFill?.price || ''}"></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
+                `;
+            } else if (type === 'cash') {
+                container.innerHTML = `
+                    <div class="input-group"><label>סוג</label><select id="dyn_cashType"><option value="עו״ש" ${dataToFill?.cashType==='עו״ש'?'selected':''}>עו״ש</option><option value="קרן כספית" ${dataToFill?.cashType==='קרן כספית'?'selected':''}>קרן כספית</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                `;
+            } else if (type === 'alternative') {
+                container.innerHTML = `
+                    <div class="input-group"><label>תיאור</label><input type="text" id="dyn_desc" required value="${dataToFill?.desc || ''}"></div>
+                    <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" required value="${dataToFill?.region || ''}"></div>
+                    <div class="input-group"><label>סטטוס נזילות</label><select id="dyn_liquidity"><option value="חופשי" ${dataToFill?.liquidity==='חופשי'?'selected':''}>חופשי</option><option value="נעול" ${dataToFill?.liquidity==='נעול'?'selected':''}>נעול</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>רמת סיכון</label><select id="dyn_risk"><option value="נמוכה" ${dataToFill?.risk==='נמוכה'?'selected':''}>נמוכה</option><option value="בינונית" ${dataToFill?.risk==='בינונית'?'selected':''}>בינונית</option><option value="גבוהה" ${dataToFill?.risk==='גבוהה'?'selected':''}>גבוהה</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                `;
+            } else if (type === 'debt') {
+                container.innerHTML = `
+                    <div class="input-group"><label>תיאור</label><input type="text" id="dyn_desc" required value="${dataToFill?.desc || ''}"></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
+                    <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                `;
+            }
+        }
+
+        function calcStockAmount() {
+            const shares = parseFloat(document.getElementById('dyn_shares').value) || 0;
+            const price = parseFloat(document.getElementById('dyn_price').value) || 0;
+            document.getElementById('dyn_amount').value = (shares * price).toFixed(2);
+        }
+
+        function calcRsuAmount() {
+            const shares = parseFloat(document.getElementById('dyn_shares').value) || 0;
+            const price = parseFloat(document.getElementById('dyn_price').value) || 0;
+            document.getElementById('dyn_amount').value = (shares * price).toFixed(2);
+        }
 
         function createSnapshot() {
             const currentData = getCurrentData();
@@ -482,19 +601,56 @@
 
         function loadLedger(loadedData) {
             if (loadedData && loadedData.data && !loadedData.versions) {
+                const migratedData = loadedData.data.map(item => migrateLegacyItem(item));
                 dataLedger = {
                     title: loadedData.title || "דוח תמונת מצב פיננסית", subtitle: loadedData.subtitle || "",
-                    versions: [{ id: "v_" + Date.now(), name: "גרסה מיובאת (ישנה)", data: loadedData.data }]
+                    versions: [{ id: "v_" + Date.now(), name: "גרסה מיובאת", data: migratedData }]
                 };
                 currentVersionId = dataLedger.versions[0].id;
-                alert("קובץ בגרסה ישנה זוהה ושודרג למערכת הגרסאות החדשה.");
+                alert("קובץ בגרסה ישנה זוהה ושודרג למערכת הגרסאות והנתונים החדשה.");
             } else if (loadedData && loadedData.versions && Array.isArray(loadedData.versions)) {
-                dataLedger = loadedData; currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
+                dataLedger = loadedData;
+                dataLedger.versions.forEach(v => {
+                    if (v.data) {
+                        v.data = v.data.map(item => {
+                            let upgraded = item.entryType ? item : migrateLegacyItem(item);
+                            if (upgraded.entryType === 'realestate') {
+                                if (upgraded.realtyType === undefined) upgraded.realtyType = "השקעה";
+                                if (upgraded.debtAmount === undefined) upgraded.debtAmount = 0;
+                            }
+                            return upgraded;
+                        });
+                    }
+                });
+                currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
             } else { alert("מבנה קובץ אינו תואם."); return; }
             
             if(dataLedger.title) document.getElementById('reportTitle').innerText = dataLedger.title;
             if(dataLedger.subtitle) document.getElementById('reportSubtitle').innerText = dataLedger.subtitle;
             updateVersionDropdown(); renderData();
+        }
+
+        function migrateLegacyItem(item) {
+            const base = {
+                id: item.id || Date.now().toString() + Math.random(),
+                owner: item.owner || "משותף",
+                currency: item.currency || "₪",
+                amount: typeof item.amount === 'number' ? item.amount : 0
+            };
+            const cat = item.category;
+            if (cat === "שוק ההון") {
+                return { ...base, entryType: "stock", name: item.desc || "שוק ההון", desc: "", region: "", sharesCount: 0, price: 0, risk: "בינונית" };
+            } else if (cat === "עו״ש") {
+                return { ...base, entryType: "cash", cashType: "עו״ש" };
+            } else if (cat === "פנסיה" || cat === "קרן השתלמות") {
+                return { ...base, entryType: "pension", pensionCategory: cat, track: "", fundHouse: item.desc || "" };
+            } else if (cat === "נדל״ן / דירה") {
+                return { ...base, entryType: "realestate", name: item.desc || "נדל״ן", realtyType: "השקעה", country: "", debtAmount: 0 };
+            } else if (cat === "הלוואות / חובות") {
+                return { ...base, entryType: "debt", desc: item.desc || "חוב" };
+            } else {
+                return { ...base, entryType: "alternative", desc: item.desc || "אחר", region: "", liquidity: item.liquidity || "חופשי", risk: "בינונית" };
+            }
         }
 
         function clearData() {
@@ -505,14 +661,88 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            const item = {
-                id: Date.now().toString(), desc: document.getElementById('descInput').value,
-                category: document.getElementById('categoryInput').value, owner: document.getElementById('ownerInput').value,
-                liquidity: document.getElementById('liquidityInput').value, amount: parseFloat(document.getElementById('amountInput').value)
+            const type = document.getElementById('entryTypeSelect').value;
+            const owner = document.getElementById('dyn_owner')?.value || "משותף";
+            const currency = document.getElementById('dyn_currency')?.value || "₪";
+            const amount = parseFloat(document.getElementById('dyn_amount')?.value) || 0;
+
+            let item = {
+                id: editingId ? editingId : Date.now().toString(),
+                entryType: type,
+                owner,
+                currency,
+                amount
             };
-            dataLedger.versions[getCurrentVersionIndex()].data.push(item);
-            document.getElementById('descInput').value = ''; document.getElementById('amountInput').value = ''; document.getElementById('descInput').focus();
+
+            if (type === 'stock') {
+                item.name = document.getElementById('dyn_name').value;
+                item.desc = document.getElementById('dyn_desc').value;
+                item.region = document.getElementById('dyn_region').value;
+                item.sharesCount = parseFloat(document.getElementById('dyn_shares').value) || 0;
+                item.price = parseFloat(document.getElementById('dyn_price').value) || 0;
+                item.risk = document.getElementById('dyn_risk').value;
+            } else if (type === 'realestate') {
+                item.name = document.getElementById('dyn_name').value;
+                item.realtyType = document.getElementById('dyn_realtyType').value;
+                item.country = document.getElementById('dyn_country').value;
+                item.debtAmount = parseFloat(document.getElementById('dyn_debtAmount').value) || 0;
+            } else if (type === 'pension') {
+                item.pensionCategory = document.getElementById('dyn_pensionCategory').value;
+                item.track = document.getElementById('dyn_track').value;
+                item.fundHouse = document.getElementById('dyn_fundHouse').value;
+            } else if (type === 'rsu') {
+                item.companyName = document.getElementById('dyn_companyName').value;
+                item.sharesCount = parseFloat(document.getElementById('dyn_shares').value) || 0;
+                item.price = parseFloat(document.getElementById('dyn_price').value) || 0;
+            } else if (type === 'cash') {
+                item.cashType = document.getElementById('dyn_cashType').value;
+            } else if (type === 'alternative') {
+                item.desc = document.getElementById('dyn_desc').value;
+                item.region = document.getElementById('dyn_region').value;
+                item.liquidity = document.getElementById('dyn_liquidity').value;
+                item.risk = document.getElementById('dyn_risk').value;
+            } else if (type === 'debt') {
+                item.desc = document.getElementById('dyn_desc').value;
+            }
+
+            const idx = getCurrentVersionIndex();
+            if (editingId) {
+                const itemIdx = dataLedger.versions[idx].data.findIndex(i => i.id === editingId);
+                if (itemIdx >= 0) dataLedger.versions[idx].data[itemIdx] = item;
+                cancelEdit();
+            } else {
+                dataLedger.versions[idx].data.push(item);
+            }
+
+            document.getElementById('dataForm').reset();
+            document.getElementById('entryTypeSelect').value = 'stock';
+            renderDynamicForm();
             renderData();
+        }
+
+        function editItem(id) {
+            const idx = getCurrentVersionIndex();
+            const item = dataLedger.versions[idx].data.find(i => i.id === id);
+            if (!item) return;
+
+            editingId = id;
+            document.getElementById('entryTypeSelect').value = item.entryType;
+            renderDynamicForm(item);
+
+            document.getElementById('formTitle').innerText = "✏️ עדכון רשומה קיימת";
+            document.getElementById('submitBtn').innerText = "עדכן רשומה";
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('formTitle').innerText = "➕ הוספת נתון חדש";
+            document.getElementById('submitBtn').innerText = "הוסף רשומה";
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('dataForm').reset();
+            document.getElementById('entryTypeSelect').value = 'stock';
+            renderDynamicForm();
         }
 
         function deleteItem(id) {
@@ -522,66 +752,176 @@
         }
 
         function formatCurrency(num) { return new Intl.NumberFormat('he-IL').format(num); }
-        function getTagStyle(category) { const color = categoryColors[category] || categoryColors["אחר"]; return `background-color: ${color}20; color: ${color}; border: 1px solid ${color}40;`; }
-        function getLiquidityBadge(status) {
-            if (status === 'נעול') return '<span class="tag tag-status-locked">🔒 נעול לבנייה/הוצאה</span>';
-            return '<span class="tag tag-status-free">🟢 חופשי להשקעה</span>';
-        }
+        function getCurrencySymbol(curr) { return curr || '₪'; }
 
         function renderData() {
-            const liquidBody = document.getElementById('liquidTableBody');
-            const pensionBody = document.getElementById('pensionTableBody');
-            const realEstateBody = document.getElementById('realEstateTableBody');
+            const tables = {
+                stock: document.getElementById('tableStockBody'),
+                rsu: document.getElementById('tableRsuBody'),
+                cash: document.getElementById('tableCashBody'),
+                alternative: document.getElementById('tableAlternativeBody'),
+                pension: document.getElementById('tablePensionBody'),
+                realestate: document.getElementById('tableRealestateBody'),
+                debt: document.getElementById('tableDebtBody')
+            };
 
-            liquidBody.innerHTML = ''; pensionBody.innerHTML = ''; realEstateBody.innerHTML = '';
-            let liquidData = [], pensionData = [], realEstateData = [];
+            Object.values(tables).forEach(t => t.innerHTML = '');
+            let counts = { stock: 0, rsu: 0, cash: 0, alternative: 0, pension: 0, realestate: 0, debt: 0 };
+            let liquidDataForCharts = [], pensionDataForCharts = [], realEstateDataForCharts = [];
 
             getCurrentData().forEach(item => {
                 const tr = document.createElement('tr');
-                let amountColor = item.category === "הלוואות / חובות" ? "var(--accent-red)" : "var(--text-main)";
-                let displayAmount = formatCurrency(item.category === "הלוואות / חובות" ? -Math.abs(item.amount) : item.amount);
-
-                tr.innerHTML = `
-                    <td><span class="tag" style="${getTagStyle(item.category)}">${item.category}</span></td>
-                    <td>${item.desc}</td><td>${item.owner}</td><td>${getLiquidityBadge(item.liquidity)}</td>
-                    <td class="amount-cell" style="color:${amountColor};">${displayAmount} ₪</td>
-                    <td><button class="delete-btn" onclick="deleteItem('${item.id}')" title="מחק">✖</button></td>
+                const actionsHtml = `
+                    <div class="row-actions">
+                        <button class="action-btn edit-btn" onclick="editItem('${item.id}')" title="ערוך">✏️</button>
+                        <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')" title="מחק">✖</button>
+                    </div>
                 `;
 
-                if (["עו״ש", "שוק ההון", "אחר"].includes(item.category)) { liquidData.push(item); liquidBody.appendChild(tr); } 
-                else if (["פנסיה", "קרן השתלמות"].includes(item.category)) { pensionData.push(item); pensionBody.appendChild(tr); } 
-                else { realEstateData.push(item); realEstateBody.appendChild(tr); }
+                if (item.entryType === 'stock') {
+                    counts.stock++;
+                    tr.innerHTML = `
+                        <td><strong>${item.name || ''}</strong></td>
+                        <td>${item.desc || '-'}</td>
+                        <td>${item.region || ''}</td>
+                        <td>${item.sharesCount || 0}</td>
+                        <td>${formatCurrency(item.price || 0)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${item.owner}</td>
+                        <td>${item.risk || ''}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.stock.appendChild(tr);
+                    liquidDataForCharts.push({ category: "שוק ההון", amount: item.amount, liquidity: "חופשי" });
+                } else if (item.entryType === 'rsu') {
+                    counts.rsu++;
+                    tr.innerHTML = `
+                        <td><strong>${item.companyName || ''}</strong></td>
+                        <td>${item.sharesCount || 0}</td>
+                        <td>${formatCurrency(item.price || 0)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${item.owner}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.rsu.appendChild(tr);
+                    liquidDataForCharts.push({ category: "אחר", amount: item.amount, liquidity: "חופשי" });
+                } else if (item.entryType === 'cash') {
+                    counts.cash++;
+                    tr.innerHTML = `
+                        <td><span class="tag tag-status-free">${item.cashType || 'עו״ש'}</span></td>
+                        <td>${item.owner}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.cash.appendChild(tr);
+                    liquidDataForCharts.push({ category: "עו״ש", amount: item.amount, liquidity: "חופשי" });
+                } else if (item.entryType === 'alternative') {
+                    counts.alternative++;
+                    const liqTag = item.liquidity === 'נעול' ? '<span class="tag tag-status-locked">🔒 נעול</span>' : '<span class="tag tag-status-free">🟢 חופשי</span>';
+                    tr.innerHTML = `
+                        <td>${item.desc || ''}</td>
+                        <td>${item.region || ''}</td>
+                        <td>${liqTag}</td>
+                        <td>${item.owner}</td>
+                        <td>${item.risk || ''}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.alternative.appendChild(tr);
+                    liquidDataForCharts.push({ category: "אחר", amount: item.amount, liquidity: item.liquidity || "חופשי" });
+                } else if (item.entryType === 'pension') {
+                    counts.pension++;
+                    tr.innerHTML = `
+                        <td><span class="tag" style="background: #e5e7eb;">${item.pensionCategory || 'פנסיה'}</span></td>
+                        <td>${item.track || ''}</td>
+                        <td>${item.fundHouse || ''}</td>
+                        <td>${item.owner}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.pension.appendChild(tr);
+                    pensionDataForCharts.push({ category: item.pensionCategory || 'פנסיה', amount: item.amount });
+                } else if (item.entryType === 'realestate') {
+                    counts.realestate++;
+                    const debtVal = item.debtAmount || 0;
+                    tr.innerHTML = `
+                        <td><strong>${item.name || ''}</strong></td>
+                        <td><span class="tag" style="background: #e5e7eb;">${item.realtyType || 'השקעה'}</span></td>
+                        <td>${item.country || ''}</td>
+                        <td>${item.owner}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="amount-cell" style="color: var(--accent-red);">${debtVal > 0 ? '-' + formatCurrency(debtVal) + ' ' + getCurrencySymbol(item.currency) : '0'}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.realestate.appendChild(tr);
+                    realEstateDataForCharts.push({ category: "נדל״ן", amount: item.amount });
+                    if (debtVal > 0) {
+                        realEstateDataForCharts.push({ category: "הלוואות / חובות", amount: debtVal });
+                    }
+                } else if (item.entryType === 'debt') {
+                    counts.debt++;
+                    tr.innerHTML = `
+                        <td>${item.desc || ''}</td>
+                        <td>${item.owner}</td>
+                        <td class="amount-cell" style="color: var(--accent-red);">-${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tables.debt.appendChild(tr);
+                    realEstateDataForCharts.push({ category: "הלוואות / חובות", amount: item.amount });
+                }
             });
 
-            if(liquidData.length === 0) liquidBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
-            if(pensionData.length === 0) pensionBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
-            if(realEstateData.length === 0) realEstateBody.innerHTML = `<tr><td colspan="6" class="empty-state">לא הוזנו נתונים</td></tr>`;
+            const sectionsMap = {
+                stock: ['sectionStock', tables.stock, '<tr><td colspan="9" class="empty-state">לא הוזנו נתונים בשוק ההון</td></tr>'],
+                rsu: ['sectionRsu', tables.rsu, '<tr><td colspan="6" class="empty-state">לא הוזנו נתונים ב-RSU</td></tr>'],
+                cash: ['sectionCash', tables.cash, '<tr><td colspan="4" class="empty-state">לא הוזנו נתונים במזומן</td></tr>'],
+                alternative: ['sectionAlternative', tables.alternative, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בהשקעות אלטרנטיביות</td></tr>'],
+                pension: ['sectionPension', tables.pension, '<tr><td colspan="6" class="empty-state">לא הוזנו נתונים בפנסיה וקרן השתלמות</td></tr>'],
+                realestate: ['sectionRealestate', tables.realestate, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בנדל״ן</td></tr>'],
+                debt: ['sectionDebt', tables.debt, '<tr><td colspan="4" class="empty-state">לא הוזנו נתונים בהלוואות / חובות</td></tr>']
+            };
 
-            updateCharts(liquidData, pensionData, realEstateData);
+            for (const [key, [secId, tblBody, emptyHtml]] of Object.entries(sectionsMap)) {
+                const secEl = document.getElementById(secId);
+                if (counts[key] === 0) {
+                    tblBody.innerHTML = emptyHtml;
+                    secEl.style.display = 'none';
+                } else {
+                    secEl.style.display = 'block';
+                }
+            }
+
+            updateChartsMinimal(liquidDataForCharts, pensionDataForCharts, realEstateDataForCharts);
         }
 
-        function updateCharts(liquid, pension, realEstate) {
+        function updateChartsMinimal(liquid, pension, realEstate) {
             let liquidTotal = 0, liquidFreeSum = 0, liquidLockedSum = 0;
             liquid.forEach(i => { liquidTotal += i.amount; if (i.liquidity === 'נעול') liquidLockedSum += i.amount; else liquidFreeSum += i.amount; });
-            document.getElementById('liquidTotal').innerText = formatCurrency(liquidTotal);
-            document.getElementById('liquidStatusSummary').innerHTML = `🟢 חופשי: <strong style="color: #059669;">${formatCurrency(liquidFreeSum)} ₪</strong><br>🔒 משוריין: <strong style="color: #dc2626;">${formatCurrency(liquidLockedSum)} ₪</strong>`;
+            const litEl = document.getElementById('liquidTotal');
+            if(litEl) litEl.innerText = formatCurrency(liquidTotal);
+            const lssEl = document.getElementById('liquidStatusSummary');
+            if(lssEl) lssEl.innerHTML = `🟢 חופשי: <strong style="color: #059669;">${formatCurrency(liquidFreeSum)} ₪</strong><br>🔒 משוריין: <strong style="color: #dc2626;">${formatCurrency(liquidLockedSum)} ₪</strong>`;
             applyPieChart('liquidPieChart', 'liquidLegend', {"חופשי (זמין)": liquidFreeSum, "נעול (משוריין)": liquidLockedSum}, liquidTotal, {"חופשי (זמין)": "#059669", "נעול (משוריין)": "#ef4444"});
 
             const pensionCategories = {"פנסיה": 0, "קרן השתלמות": 0}; let pensionTotal = 0;
-            pension.forEach(i => { pensionCategories[i.category] += i.amount; pensionTotal += i.amount; });
-            document.getElementById('pensionTotal').innerText = formatCurrency(pensionTotal);
+            pension.forEach(i => { if(pensionCategories[i.category] !== undefined) pensionCategories[i.category] += i.amount; pensionTotal += i.amount; });
+            const petEl = document.getElementById('pensionTotal');
+            if(petEl) petEl.innerText = formatCurrency(pensionTotal);
             applyPieChart('pensionPieChart', 'pensionLegend', pensionCategories, pensionTotal, categoryColors);
 
             let assets = 0, debts = 0;
             realEstate.forEach(i => { if (i.category === "הלוואות / חובות") debts += Math.abs(i.amount); else assets += i.amount; });
             const netRealEstate = assets - debts;
             const netDisplay = document.getElementById('netRealEstate');
-            netDisplay.innerText = formatCurrency(netRealEstate) + " ₪";
-            netDisplay.style.color = netRealEstate >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+            if(netDisplay) {
+                netDisplay.innerText = formatCurrency(netRealEstate) + " ₪";
+                netDisplay.style.color = netRealEstate >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+            }
         }
 
         function applyPieChart(chartId, legendId, categoriesMap, total, colorMap) {
             const chart = document.getElementById(chartId); const legend = document.getElementById(legendId);
+            if(!chart || !legend) return;
             legend.innerHTML = ''; if (total === 0) { chart.style.background = 'conic-gradient(#e5e7eb 0% 100%)'; return; }
             let gradientString = '', startPercent = 0;
             for (const [category, amount] of Object.entries(categoriesMap)) {

@@ -31,7 +31,6 @@ let dataLedger = {
     ]
 };
 
-
 ## 3. Global State Variables
 *   `dataLedger`: The main state object.
 *   `currentVersionId`: Tracks the currently selected snapshot in the UI.
