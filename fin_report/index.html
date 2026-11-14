@@ -97,6 +97,24 @@
         
         .version-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; font-family: inherit; background: white; font-weight: 500; color: var(--primary); outline: none; }
 
+        /* Exchange Rate Bar */
+        .rate-bar {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-top: 4px solid var(--accent-blue);
+        }
+        .rate-bar span { font-weight: 600; color: var(--primary); }
+        .rate-inputs { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .rate-inputs label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+        .rate-inputs input { width: 80px; padding: 6px 8px; font-weight: 500; text-align: center; }
+
         /* Tab Navigation (.tab-nav) */
         .tab-nav {
             display: flex;
@@ -171,18 +189,37 @@
         .toc-list li { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e5e7eb; font-size: 1.1rem; }
         .toc-list li::before { content: '📌'; margin-left: 10px; }
 
+        /* KPI Bar */
+        .kpi-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: linear-gradient(135deg, #f9fafb, #ffffff);
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            text-align: center;
+        }
+        .kpi-card h4 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+        .kpi-value { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin: 0; direction: ltr; }
+
         /* Small Dive (Summaries) */
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .chart-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: #f9fafb; border-radius: 16px; padding: 25px; min-height: 250px; border: 1px solid #f3f4f6; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .chart-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: #f9fafb; border-radius: 16px; padding: 25px; min-height: 300px; border: 1px solid #f3f4f6; }
         .chart-container h3 { margin-top: 0; margin-bottom: 20px; color: var(--primary); font-size: 1.3rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; width: 100%; text-align: center; }
         
-        .pie-chart { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(#e5e7eb 0% 100%); margin-bottom: 15px; transition: background 0.5s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .chart-legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 0.85rem; }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
-        .legend-color { width: 12px; height: 12px; border-radius: 3px; }
+        .pie-chart { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#e5e7eb 0% 100%); margin-bottom: 20px; transition: background 0.5s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .chart-legend { display: flex; flex-direction: column; gap: 8px; width: 100%; font-size: 0.9rem; max-height: 220px; overflow-y: auto; padding: 0 5px; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #e5e7eb; }
+        .legend-left { display: flex; align-items: center; gap: 8px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+        .legend-val { font-weight: 600; direction: ltr; font-size: 0.85rem; color: var(--text-main); }
         
-        .total-display { margin-top: 15px; color: var(--text-main); font-size: 1.4rem; font-weight: bold; margin-bottom: 0; }
-        .status-summary { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #d1d5db; width: 100%; text-align: center; font-size: 0.95rem; line-height: 1.6; }
+        .total-display { margin-top: 15px; color: var(--text-main); font-size: 1.3rem; font-weight: bold; margin-bottom: 0; direction: ltr; }
 
         /* Deep Dive (Tables) */
         details { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
@@ -195,6 +232,7 @@
         th { background-color: #f9fafb; font-weight: 500; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
         tr:hover td { background-color: #f9fafb; }
         .amount-cell { font-weight: 600; color: var(--text-main); direction: ltr; text-align: right; }
+        .ils-cell { color: var(--text-muted); font-size: 0.9rem; direction: ltr; text-align: right; }
         .row-actions { display: flex; gap: 8px; align-items: center; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: 0.3s; }
         .action-btn:hover { opacity: 1; }
@@ -211,7 +249,7 @@
 
         /* Print Optimization */
         @media print {
-            .toolbar, .tab-nav, .control-panel, .no-print-save, .row-actions { display: none !important; }
+            .toolbar, .rate-bar, .tab-nav, .control-panel, .no-print-save, .row-actions { display: none !important; }
             body { background: white; }
             .header { box-shadow: none; color: black; background: white; border-bottom: 2px solid #000; }
             .tab-panel { display: block !important; }
@@ -252,6 +290,15 @@
             </div>
         </div>
 
+        <!-- Exchange Rate Bar -->
+        <div class="rate-bar no-print-save">
+            <span>שערי המרה ל-₪:</span>
+            <div class="rate-inputs">
+                <label>$ (דולר): <input type="number" step="0.01" id="rateUSD" value="3.65" oninput="onRateChange()"></label>
+                <label>€ (אירו): <input type="number" step="0.01" id="rateEUR" value="3.95" oninput="onRateChange()"></label>
+            </div>
+        </div>
+
         <!-- Tab Navigation -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('tabOverview')">מבט על</button>
@@ -278,29 +325,37 @@
                 <div class="section-header">
                     <h2>📊 תמונת מצב - תקציר מנהלים</h2>
                 </div>
+
+                <!-- Top KPI Bar -->
+                <div class="kpi-bar">
+                    <div class="kpi-card">
+                        <h4>סה״כ שווי נכסים ברוטו</h4>
+                        <p class="kpi-value" id="kpiGrossAssets">0 ₪</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>סה״כ משכנתאות / חובות נדל״ן</h4>
+                        <p class="kpi-value" id="kpiRealEstateDebts" style="color: var(--accent-red);">0 ₪</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>הון נקי כולל (Net Worth)</h4>
+                        <p class="kpi-value" id="kpiNetWorth" style="color: var(--accent-green);">0 ₪</p>
+                    </div>
+                </div>
+
                 <div class="summary-grid">
-                    <!-- Liquid Summary -->
+                    <!-- Pie Chart 1: Assets Breakdown -->
                     <div class="chart-container">
-                        <h3>💸 נכסים נזילים ותיקי השקעות</h3>
-                        <div class="pie-chart" id="liquidPieChart"></div>
-                        <div class="chart-legend" id="liquidLegend"></div>
-                        <p class="total-display">סה"כ: <span id="liquidTotal">0</span> ₪</p>
-                        <div class="status-summary" id="liquidStatusSummary"></div>
+                        <h3>🌐 התפלגות נכסים (בש״ח)</h3>
+                        <div class="pie-chart" id="assetsPieChart"></div>
+                        <div class="chart-legend" id="assetsLegend"></div>
                     </div>
 
-                    <!-- Pension Summary -->
+                    <!-- Pie Chart 2: Pension & Study Funds -->
                     <div class="chart-container">
-                        <h3>📈 פנסיה וחיסכון ארוך טווח</h3>
+                        <h3>📈 פנסיה וקרנות השתלמות (בש״ח)</h3>
                         <div class="pie-chart" id="pensionPieChart"></div>
                         <div class="chart-legend" id="pensionLegend"></div>
                         <p class="total-display">סה"כ: <span id="pensionTotal">0</span> ₪</p>
-                    </div>
-
-                    <!-- Real Estate Summary -->
-                    <div class="chart-container" style="border: 2px dashed #e5e7eb;">
-                        <h3>🏠 נדל"ן והתחייבויות</h3>
-                        <div style="font-size: 2.5rem; font-weight: bold; margin-top: 20px; color: var(--accent-orange);" id="netRealEstate">0 ₪</div>
-                        <div style="margin-top: 15px; font-size: 1.1rem; color: var(--text-muted); text-align: center;">מאזן נטו<br>(סה"כ נכסים פחות סה"כ חובות)</div>
                     </div>
                 </div>
             </div>
@@ -346,7 +401,7 @@
                     <summary>📈 שוק ההון</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>שם מניה</th><th>תיאור</th><th>איזור השקעה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>שם מניה</th><th>תיאור</th><th>איזור השקעה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableStockBody"></tbody>
                         </table>
                     </div>
@@ -356,7 +411,7 @@
                     <summary>💼 RSU</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>שם חברה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>שם חברה</th><th>מספר מניות</th><th>מחיר למניה</th><th>בעלות</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableRsuBody"></tbody>
                         </table>
                     </div>
@@ -366,7 +421,7 @@
                     <summary>💵 מזומן לא מושקע</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>סוג</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>סוג</th><th>בעלות</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableCashBody"></tbody>
                         </table>
                     </div>
@@ -376,7 +431,7 @@
                     <summary>🌐 השקעה אלטרנטיבית</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>תיאור</th><th>איזור השקעה</th><th>סטטוס נזילות</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>תיאור</th><th>איזור השקעה</th><th>סטטוס נזילות</th><th>בעלות</th><th>רמת סיכון</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableAlternativeBody"></tbody>
                         </table>
                     </div>
@@ -386,7 +441,7 @@
                     <summary>🏦 פנסיה / קרן השתלמות</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>קטגוריה</th><th>מסלול</th><th>בית השקעות</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>קטגוריה</th><th>מסלול</th><th>בית השקעות</th><th>בעלות</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tablePensionBody"></tbody>
                         </table>
                     </div>
@@ -396,7 +451,7 @@
                     <summary>🏠 נדל״ן</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>שם נכס</th><th>סוג</th><th>מדינה</th><th>בעלות</th><th>סכום</th><th>הלוואה/חוב</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>שם נכס</th><th>סוג נכס</th><th>שווי נכס</th><th>חוב / משכנתא</th><th>שוווי נטו</th><th>שוווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableRealestateBody"></tbody>
                         </table>
                     </div>
@@ -406,7 +461,7 @@
                     <summary>💳 הלוואות / חובות</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>תיאור</th><th>בעלות</th><th>סכום</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>תיאור</th><th>בעלות</th><th>סכום</th><th>שווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableDebtBody"></tbody>
                         </table>
                     </div>
@@ -421,6 +476,7 @@
 
     <script>
         let dataLedger = {
+            rates: { "₪": 1, "$": 3.65, "€": 3.95 },
             versions: [{ id: "v_" + Date.now(), name: "בסיס - " + new Date().toLocaleDateString('he-IL'), data: [] }],
             title: "דוח תמונת מצב פיננסית",
             subtitle: "הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]"
@@ -429,11 +485,24 @@
         let editingId = null;
         const TARGET_FILE_NAME = "financial_data.json";
 
-        const categoryColors = {
-            "עו״ש": "var(--accent-blue)", "שוק ההון": "var(--accent-purple)", "פנסיה": "var(--accent-green)",
-            "קרן השתלמות": "#059669", "נדל״ן / דירה": "var(--accent-orange)", "הלוואות / חובות": "var(--accent-red)",
-            "אחר": "var(--accent-gray)"
-        };
+        const highContrastPalette = [
+            "#4361ee", "#3a86ff", "#06d6a0", "#ffd166", "#ef476f", 
+            "#8338ec", "#ff006e", "#fb5607", "#38b000", "#00f5d4", 
+            "#7209b7", "#f72585", "#4cc9f0", "#4895ef", "#560bad"
+        ];
+
+        function toILS(amount, currency) {
+            const rates = dataLedger.rates || { "₪": 1, "$": 3.65, "€": 3.95 };
+            const rate = rates[currency || "₪"] || 1;
+            return (Number(amount) || 0) * rate;
+        }
+
+        function onRateChange() {
+            const usdInput = parseFloat(document.getElementById('rateUSD').value) || 3.65;
+            const eurInput = parseFloat(document.getElementById('rateEUR').value) || 3.95;
+            dataLedger.rates = { "₪": 1, "$": usdInput, "€": eurInput };
+            renderData();
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -495,12 +564,11 @@
             } else if (type === 'realestate') {
                 container.innerHTML = `
                     <div class="input-group"><label>שם נכס</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
-                    <div class="input-group"><label>סוג נכס</label><select id="dyn_realtyType"><option value="השקעה" ${dataToFill?.realtyType==='השקעה'?'selected':''}>השקעה</option><option value="מגורים" ${dataToFill?.realtyType==='מגורים'?'selected':''}>מגורים</option></select></div>
-                    <div class="input-group"><label>מדינה</label><input type="text" id="dyn_country" required value="${dataToFill?.country || ''}"></div>
+                    <div class="input-group"><label>סוג נכס</label><select id="dyn_reType"><option value="מגורים" ${(dataToFill?.reType || dataToFill?.realtyType)==='מגורים'?'selected':''}>מגורים</option><option value="השקעה" ${(dataToFill?.reType || dataToFill?.realtyType)==='השקעה'?'selected':''}>השקעה</option></select></div>
                     <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
-                    <div class="input-group"><label>סכום (שווי)</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
-                    <div class="input-group"><label>הלוואה / חוב</label><input type="number" step="any" id="dyn_debtAmount" value="${dataToFill?.debtAmount || 0}"></div>
+                    <div class="input-group"><label>שווי נכס (סכום)</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
+                    <div class="input-group"><label>חוב / משכנתא</label><input type="number" min="0" step="any" id="dyn_debt" value="${dataToFill?.debt !== undefined ? dataToFill.debt : (dataToFill?.debtAmount || 0)}"></div>
                 `;
             } else if (type === 'pension') {
                 container.innerHTML = `
@@ -560,6 +628,8 @@
         }
 
         function createSnapshot() {
+            dataLedger.title = document.getElementById('reportTitle').innerText;
+            dataLedger.subtitle = document.getElementById('reportSubtitle').innerText;
             const currentData = getCurrentData();
             const snapshotName = prompt("הכנס שם לגרסה החדשה:");
             if (snapshotName) {
@@ -600,31 +670,46 @@
         }
 
         function loadLedger(loadedData) {
+            if (loadedData) {
+                if (loadedData.rates) {
+                    dataLedger.rates = { "₪": 1, "$": loadedData.rates["$"] || 3.65, "€": loadedData.rates["€"] || 3.95 };
+                }
+            }
+
             if (loadedData && loadedData.data && !loadedData.versions) {
                 const migratedData = loadedData.data.map(item => migrateLegacyItem(item));
                 dataLedger = {
+                    ...dataLedger,
                     title: loadedData.title || "דוח תמונת מצב פיננסית", subtitle: loadedData.subtitle || "",
                     versions: [{ id: "v_" + Date.now(), name: "גרסה מיובאת", data: migratedData }]
                 };
                 currentVersionId = dataLedger.versions[0].id;
                 alert("קובץ בגרסה ישנה זוהה ושודרג למערכת הגרסאות והנתונים החדשה.");
             } else if (loadedData && loadedData.versions && Array.isArray(loadedData.versions)) {
-                dataLedger = loadedData;
+                dataLedger.versions = loadedData.versions;
+                dataLedger.title = loadedData.title || dataLedger.title;
+                dataLedger.subtitle = loadedData.subtitle || dataLedger.subtitle;
                 dataLedger.versions.forEach(v => {
                     if (v.data) {
                         v.data = v.data.map(item => {
                             let upgraded = item.entryType ? item : migrateLegacyItem(item);
                             if (upgraded.entryType === 'realestate') {
-                                if (upgraded.realtyType === undefined) upgraded.realtyType = "השקעה";
-                                if (upgraded.debtAmount === undefined) upgraded.debtAmount = 0;
+                                if (upgraded.reType === undefined) upgraded.reType = upgraded.realtyType || "מגורים";
+                                if (upgraded.debt === undefined) upgraded.debt = upgraded.debtAmount || 0;
                             }
                             return upgraded;
                         });
                     }
                 });
-                currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
+                if (dataLedger.versions.length > 0) {
+                    currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
+                }
             } else { alert("מבנה קובץ אינו תואם."); return; }
             
+            if (dataLedger.rates) {
+                if(document.getElementById('rateUSD')) document.getElementById('rateUSD').value = dataLedger.rates["$"] || 3.65;
+                if(document.getElementById('rateEUR')) document.getElementById('rateEUR').value = dataLedger.rates["€"] || 3.95;
+            }
             if(dataLedger.title) document.getElementById('reportTitle').innerText = dataLedger.title;
             if(dataLedger.subtitle) document.getElementById('reportSubtitle').innerText = dataLedger.subtitle;
             updateVersionDropdown(); renderData();
@@ -645,7 +730,7 @@
             } else if (cat === "פנסיה" || cat === "קרן השתלמות") {
                 return { ...base, entryType: "pension", pensionCategory: cat, track: "", fundHouse: item.desc || "" };
             } else if (cat === "נדל״ן / דירה") {
-                return { ...base, entryType: "realestate", name: item.desc || "נדל״ן", realtyType: "השקעה", country: "", debtAmount: 0 };
+                return { ...base, entryType: "realestate", name: item.desc || "נדל״ן", reType: "מגורים", debt: 0 };
             } else if (cat === "הלוואות / חובות") {
                 return { ...base, entryType: "debt", desc: item.desc || "חוב" };
             } else {
@@ -683,9 +768,8 @@
                 item.risk = document.getElementById('dyn_risk').value;
             } else if (type === 'realestate') {
                 item.name = document.getElementById('dyn_name').value;
-                item.realtyType = document.getElementById('dyn_realtyType').value;
-                item.country = document.getElementById('dyn_country').value;
-                item.debtAmount = parseFloat(document.getElementById('dyn_debtAmount').value) || 0;
+                item.reType = document.getElementById('dyn_reType').value;
+                item.debt = parseFloat(document.getElementById('dyn_debt').value) || 0;
             } else if (type === 'pension') {
                 item.pensionCategory = document.getElementById('dyn_pensionCategory').value;
                 item.track = document.getElementById('dyn_track').value;
@@ -751,7 +835,7 @@
             renderData();
         }
 
-        function formatCurrency(num) { return new Intl.NumberFormat('he-IL').format(num); }
+        function formatCurrency(num) { return new Intl.NumberFormat('he-IL').format(Math.round(num)); }
         function getCurrencySymbol(curr) { return curr || '₪'; }
 
         function renderData() {
@@ -767,9 +851,27 @@
 
             Object.values(tables).forEach(t => t.innerHTML = '');
             let counts = { stock: 0, rsu: 0, cash: 0, alternative: 0, pension: 0, realestate: 0, debt: 0 };
-            let liquidDataForCharts = [], pensionDataForCharts = [], realEstateDataForCharts = [];
+            
+            let rawData = getCurrentData();
 
-            getCurrentData().forEach(item => {
+            // Aggregation structures for Pie Chart 1 (Assets Breakdown)
+            let rsuMap = {};
+            let lowRiskStocksILS = 0;
+            let otherStocksILS = 0;
+            let reInvestmentILS = 0;
+            let reResidentialILS = 0;
+            let alternativeILS = 0;
+            let cashILS = 0;
+
+            // Aggregation for Pie Chart 2 (Pension & Study Funds)
+            let pensionMap = {};
+            let pensionTotalILS = 0;
+
+            // KPI calculations
+            let grossAssetsILS = 0;
+            let realEstateDebtsILS = 0;
+
+            rawData.forEach(item => {
                 const tr = document.createElement('tr');
                 const actionsHtml = `
                     <div class="row-actions">
@@ -777,9 +879,16 @@
                         <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')" title="מחק">✖</button>
                     </div>
                 `;
+                const ilsVal = toILS(item.amount, item.currency);
 
                 if (item.entryType === 'stock') {
                     counts.stock++;
+                    grossAssetsILS += ilsVal;
+                    if (item.risk === 'נמוכה') {
+                        lowRiskStocksILS += ilsVal;
+                    } else {
+                        otherStocksILS += ilsVal;
+                    }
                     tr.innerHTML = `
                         <td><strong>${item.name || ''}</strong></td>
                         <td>${item.desc || '-'}</td>
@@ -789,34 +898,41 @@
                         <td>${item.owner}</td>
                         <td>${item.risk || ''}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.stock.appendChild(tr);
-                    liquidDataForCharts.push({ category: "שוק ההון", amount: item.amount, liquidity: "חופשי" });
                 } else if (item.entryType === 'rsu') {
                     counts.rsu++;
+                    grossAssetsILS += ilsVal;
+                    const compName = item.companyName || 'חברה כללית';
+                    rsuMap[compName] = (rsuMap[compName] || 0) + ilsVal;
                     tr.innerHTML = `
-                        <td><strong>${item.companyName || ''}</strong></td>
+                        <td><strong>${compName}</strong></td>
                         <td>${item.sharesCount || 0}</td>
                         <td>${formatCurrency(item.price || 0)} ${getCurrencySymbol(item.currency)}</td>
                         <td>${item.owner}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.rsu.appendChild(tr);
-                    liquidDataForCharts.push({ category: "אחר", amount: item.amount, liquidity: "חופשי" });
                 } else if (item.entryType === 'cash') {
                     counts.cash++;
+                    grossAssetsILS += ilsVal;
+                    cashILS += ilsVal;
                     tr.innerHTML = `
                         <td><span class="tag tag-status-free">${item.cashType || 'עו״ש'}</span></td>
                         <td>${item.owner}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.cash.appendChild(tr);
-                    liquidDataForCharts.push({ category: "עו״ש", amount: item.amount, liquidity: "חופשי" });
                 } else if (item.entryType === 'alternative') {
                     counts.alternative++;
+                    grossAssetsILS += ilsVal;
+                    alternativeILS += ilsVal;
                     const liqTag = item.liquidity === 'נעול' ? '<span class="tag tag-status-locked">🔒 נעול</span>' : '<span class="tag tag-status-free">🟢 חופשי</span>';
                     tr.innerHTML = `
                         <td>${item.desc || ''}</td>
@@ -825,60 +941,76 @@
                         <td>${item.owner}</td>
                         <td>${item.risk || ''}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.alternative.appendChild(tr);
-                    liquidDataForCharts.push({ category: "אחר", amount: item.amount, liquidity: item.liquidity || "חופשי" });
                 } else if (item.entryType === 'pension') {
                     counts.pension++;
+                    grossAssetsILS += ilsVal;
+                    pensionTotalILS += ilsVal;
+                    const catPart = item.pensionCategory || 'פנסיה';
+                    const housePart = item.fundHouse ? ` - ${item.fundHouse}` : '';
+                    const trackPart = item.track ? ` (${item.track})` : '';
+                    const pensionKey = `${catPart}${housePart}${trackPart}`;
+                    pensionMap[pensionKey] = (pensionMap[pensionKey] || 0) + ilsVal;
+
                     tr.innerHTML = `
                         <td><span class="tag" style="background: #e5e7eb;">${item.pensionCategory || 'פנסיה'}</span></td>
                         <td>${item.track || ''}</td>
                         <td>${item.fundHouse || ''}</td>
                         <td>${item.owner}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.pension.appendChild(tr);
-                    pensionDataForCharts.push({ category: item.pensionCategory || 'פנסיה', amount: item.amount });
                 } else if (item.entryType === 'realestate') {
                     counts.realestate++;
-                    const debtVal = item.debtAmount || 0;
+                    grossAssetsILS += ilsVal;
+                    const debtAmt = item.debt !== undefined ? item.debt : (item.debtAmount || 0);
+                    const debtIls = toILS(debtAmt, item.currency);
+                    realEstateDebtsILS += debtIls;
+                    
+                    const netIls = Math.max(0, ilsVal - debtIls);
+                    const rType = item.reType || item.realtyType || "מגורים";
+                    if (rType === "השקעה") {
+                        reInvestmentILS += netIls;
+                    } else {
+                        reResidentialILS += netIls;
+                    }
+
                     tr.innerHTML = `
                         <td><strong>${item.name || ''}</strong></td>
-                        <td><span class="tag" style="background: #e5e7eb;">${item.realtyType || 'השקעה'}</span></td>
-                        <td>${item.country || ''}</td>
-                        <td>${item.owner}</td>
+                        <td><span class="tag" style="background: #e5e7eb;">${rType}</span></td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
-                        <td class="amount-cell" style="color: var(--accent-red);">${debtVal > 0 ? '-' + formatCurrency(debtVal) + ' ' + getCurrencySymbol(item.currency) : '0'}</td>
+                        <td class="amount-cell" style="color: var(--accent-red);">${debtAmt > 0 ? '-' + formatCurrency(debtAmt) + ' ' + getCurrencySymbol(item.currency) : '0'}</td>
+                        <td class="amount-cell">${formatCurrency(item.amount - debtAmt)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.realestate.appendChild(tr);
-                    realEstateDataForCharts.push({ category: "נדל״ן", amount: item.amount });
-                    if (debtVal > 0) {
-                        realEstateDataForCharts.push({ category: "הלוואות / חובות", amount: debtVal });
-                    }
                 } else if (item.entryType === 'debt') {
                     counts.debt++;
                     tr.innerHTML = `
                         <td>${item.desc || ''}</td>
                         <td>${item.owner}</td>
                         <td class="amount-cell" style="color: var(--accent-red);">-${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
+                        <td class="ils-cell">-${formatCurrency(ilsVal)} ₪</td>
                         <td>${actionsHtml}</td>
                     `;
                     tables.debt.appendChild(tr);
-                    realEstateDataForCharts.push({ category: "הלוואות / חובות", amount: item.amount });
                 }
             });
 
             const sectionsMap = {
-                stock: ['sectionStock', tables.stock, '<tr><td colspan="9" class="empty-state">לא הוזנו נתונים בשוק ההון</td></tr>'],
-                rsu: ['sectionRsu', tables.rsu, '<tr><td colspan="6" class="empty-state">לא הוזנו נתונים ב-RSU</td></tr>'],
-                cash: ['sectionCash', tables.cash, '<tr><td colspan="4" class="empty-state">לא הוזנו נתונים במזומן</td></tr>'],
-                alternative: ['sectionAlternative', tables.alternative, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בהשקעות אלטרנטיביות</td></tr>'],
-                pension: ['sectionPension', tables.pension, '<tr><td colspan="6" class="empty-state">לא הוזנו נתונים בפנסיה וקרן השתלמות</td></tr>'],
+                stock: ['sectionStock', tables.stock, '<tr><td colspan="10" class="empty-state">לא הוזנו נתונים בשוק ההון</td></tr>'],
+                rsu: ['sectionRsu', tables.rsu, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים ב-RSU</td></tr>'],
+                cash: ['sectionCash', tables.cash, '<tr><td colspan="5" class="empty-state">לא הוזנו נתונים במזומן</td></tr>'],
+                alternative: ['sectionAlternative', tables.alternative, '<tr><td colspan="8" class="empty-state">לא הוזנו נתונים בהשקעות אלטרנטיביות</td></tr>'],
+                pension: ['sectionPension', tables.pension, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בפנסיה וקרן השתלמות</td></tr>'],
                 realestate: ['sectionRealestate', tables.realestate, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בנדל״ן</td></tr>'],
-                debt: ['sectionDebt', tables.debt, '<tr><td colspan="4" class="empty-state">לא הוזנו נתונים בהלוואות / חובות</td></tr>']
+                debt: ['sectionDebt', tables.debt, '<tr><td colspan="5" class="empty-state">לא הוזנו נתונים בהלוואות / חובות</td></tr>']
             };
 
             for (const [key, [secId, tblBody, emptyHtml]] of Object.entries(sectionsMap)) {
@@ -891,45 +1023,73 @@
                 }
             }
 
-            updateChartsMinimal(liquidDataForCharts, pensionDataForCharts, realEstateDataForCharts);
+            updateDashboardKPIsAndCharts(grossAssetsILS, realEstateDebtsILS, rsuMap, lowRiskStocksILS, otherStocksILS, reInvestmentILS, reResidentialILS, alternativeILS, cashILS, pensionMap, pensionTotalILS);
         }
 
-        function updateChartsMinimal(liquid, pension, realEstate) {
-            let liquidTotal = 0, liquidFreeSum = 0, liquidLockedSum = 0;
-            liquid.forEach(i => { liquidTotal += i.amount; if (i.liquidity === 'נעול') liquidLockedSum += i.amount; else liquidFreeSum += i.amount; });
-            const litEl = document.getElementById('liquidTotal');
-            if(litEl) litEl.innerText = formatCurrency(liquidTotal);
-            const lssEl = document.getElementById('liquidStatusSummary');
-            if(lssEl) lssEl.innerHTML = `🟢 חופשי: <strong style="color: #059669;">${formatCurrency(liquidFreeSum)} ₪</strong><br>🔒 משוריין: <strong style="color: #dc2626;">${formatCurrency(liquidLockedSum)} ₪</strong>`;
-            applyPieChart('liquidPieChart', 'liquidLegend', {"חופשי (זמין)": liquidFreeSum, "נעול (משוריין)": liquidLockedSum}, liquidTotal, {"חופשי (זמין)": "#059669", "נעול (משוריין)": "#ef4444"});
+        function updateDashboardKPIsAndCharts(grossAssets, reDebts, rsuMap, lowRiskStocks, otherStocks, reInv, reRes, alt, cash, pensionMap, pensionTotal) {
+            const netWorth = grossAssets - reDebts;
 
-            const pensionCategories = {"פנסיה": 0, "קרן השתלמות": 0}; let pensionTotal = 0;
-            pension.forEach(i => { if(pensionCategories[i.category] !== undefined) pensionCategories[i.category] += i.amount; pensionTotal += i.amount; });
-            const petEl = document.getElementById('pensionTotal');
-            if(petEl) petEl.innerText = formatCurrency(pensionTotal);
-            applyPieChart('pensionPieChart', 'pensionLegend', pensionCategories, pensionTotal, categoryColors);
+            document.getElementById('kpiGrossAssets').innerText = formatCurrency(grossAssets) + " ₪";
+            const reDebtsEl = document.getElementById('kpiRealEstateDebts');
+            reDebtsEl.innerText = formatCurrency(reDebts) + " ₪";
+            const netWorthEl = document.getElementById('kpiNetWorth');
+            netWorthEl.innerText = formatCurrency(netWorth) + " ₪";
+            netWorthEl.style.color = netWorth >= 0 ? "var(--accent-green)" : "var(--accent-red)";
 
-            let assets = 0, debts = 0;
-            realEstate.forEach(i => { if (i.category === "הלוואות / חובות") debts += Math.abs(i.amount); else assets += i.amount; });
-            const netRealEstate = assets - debts;
-            const netDisplay = document.getElementById('netRealEstate');
-            if(netDisplay) {
-                netDisplay.innerText = formatCurrency(netRealEstate) + " ₪";
-                netDisplay.style.color = netRealEstate >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+            // Build Assets Breakdown Map
+            let assetsMap = {};
+            for (const [comp, val] of Object.entries(rsuMap)) {
+                if (val > 0) assetsMap[`RSU: ${comp}`] = val;
             }
+            if (lowRiskStocks > 0) assetsMap["אג״ח"] = lowRiskStocks;
+            if (otherStocks > 0) assetsMap["מניות"] = otherStocks;
+            if (reInv > 0) assetsMap["נדל״ן השקעה"] = reInv;
+            if (reRes > 0) assetsMap["נדל״ן מגורים"] = reRes;
+            if (alt > 0) assetsMap["אלטרנטיבי"] = alt;
+            if (cash > 0) assetsMap["מזומן"] = cash;
+
+            let totalAssetsSum = 0;
+            for (const val of Object.values(assetsMap)) totalAssetsSum += val;
+
+            applyPieChartWithLegend('assetsPieChart', 'assetsLegend', assetsMap, totalAssetsSum);
+
+            // Pension Total & Chart
+            document.getElementById('pensionTotal').innerText = formatCurrency(pensionTotal);
+            applyPieChartWithLegend('pensionPieChart', 'pensionLegend', pensionMap, pensionTotal);
         }
 
-        function applyPieChart(chartId, legendId, categoriesMap, total, colorMap) {
-            const chart = document.getElementById(chartId); const legend = document.getElementById(legendId);
+        function applyPieChartWithLegend(chartId, legendId, mapData, totalSum) {
+            const chart = document.getElementById(chartId); 
+            const legend = document.getElementById(legendId);
             if(!chart || !legend) return;
-            legend.innerHTML = ''; if (total === 0) { chart.style.background = 'conic-gradient(#e5e7eb 0% 100%)'; return; }
-            let gradientString = '', startPercent = 0;
-            for (const [category, amount] of Object.entries(categoriesMap)) {
+            legend.innerHTML = ''; 
+            
+            if (totalSum === 0) { 
+                chart.style.background = 'conic-gradient(#e5e7eb 0% 100%)'; 
+                legend.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px;">אין נתונים להצגה</div>';
+                return; 
+            }
+
+            let gradientString = '', startPercent = 0, colorIdx = 0;
+            for (const [name, amount] of Object.entries(mapData)) {
                 if (amount > 0) {
-                    const percent = (amount / total) * 100; const endPercent = startPercent + percent;
-                    const color = colorMap[category] || "gray";
-                    gradientString += `${color} ${startPercent}% ${endPercent}%, `; startPercent = endPercent;
-                    legend.innerHTML += `<div class="legend-item"><div class="legend-color" style="background-color: ${color};"></div><span>${category} (${Math.round(percent)}%)</span></div>`;
+                    const percent = (amount / totalSum) * 100; 
+                    const endPercent = startPercent + percent;
+                    const color = highContrastPalette[colorIdx % highContrastPalette.length];
+                    colorIdx++;
+
+                    gradientString += `${color} ${startPercent}% ${endPercent}%, `; 
+                    startPercent = endPercent;
+
+                    legend.innerHTML += `
+                        <div class="legend-item">
+                            <div class="legend-left">
+                                <div class="legend-color" style="background-color: ${color};"></div>
+                                <span style="font-size: 0.85rem; font-weight: 500;">${name}</span>
+                            </div>
+                            <span class="legend-val">${formatCurrency(amount)} ₪ (${Math.round(percent)}%)</span>
+                        </div>
+                    `;
                 }
             }
             chart.style.background = `conic-gradient(${gradientString.slice(0, -2)})`;
