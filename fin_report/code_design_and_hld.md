@@ -7,11 +7,12 @@ This application is a **Zero-Dependency Single-Page Application (SPA)** built en
 *   **Storage:** Data persistence is handled via manual JSON file import/export via the OS native file picker (allowing implicit integration with local Google Drive folders).
 
 ## 2. Data Structure (The "Ledger")
-The application state is maintained in a global `dataLedger` object with V3 snapshot-based version control supporting polymorphic entry types (`entryType`) and centralized exchange rates.
+The application state is maintained in a global `dataLedger` object with V3 snapshot-based version control supporting polymorphic entry types (`entryType`), centralized exchange rates, and explicit owner management (`owners`).
 
 ```javascript
 let dataLedger = {
     rates: { "₪": 1, "$": 3.65, "€": 3.95 },
+    owners: ["משותף", "שלי", "נעמה"],
     title: "Document Title",
     subtitle: "Document Subtitle",
     versions: [
@@ -22,12 +23,11 @@ let dataLedger = {
                 {
                     id: "timestamp_string",
                     entryType: "stock" | "realestate" | "pension" | "rsu" | "cash" | "alternative" | "debt",
-                    owner: "שלי" | "נעמה" | "משותף",
+                    owner: "משותף",
                     currency: "$" | "₪" | "€",
                     amount: 150000,
-                    reType: "מגורים" | "השקעה", // specific to realestate
-                    debt: 50000,             // specific to realestate
-                    // Type-specific fields (e.g., name, desc, region, sharesCount, price, risk, liquidity, etc.)
+                    reType: "מגורים" | "השקעה",
+                    debt: 50000,
                 }
             ]
         }

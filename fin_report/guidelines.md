@@ -22,6 +22,6 @@ The user prefers a highly readable, structured, and non-overwhelming interface. 
 *   **Print Optimization:** The `@media print` CSS block is mandatory. If you add a new interactive element, ensure it is hidden during print. Ensure any `<details>` tags are forced open during print so all data is captured in the PDF.
 
 ## 4. Coding Standards
-*   **Single File Mandate:** Keep all HTML, CSS, and JavaScript in a single `index.html` file.
+*   **Single File Mandate & Modularity:** Single-file `index.html` is preferred for `file://` portability up to ~2,000 lines. However, splitting into modular files (`index.html`, `styles.css`, `app.js`) is permitted when file size or complexity warrants it (noting `file://` CORS caveats).
 *   **Vanilla JS:** Use modern Vanilla JavaScript (ES6+). No frameworks (React, Vue, etc.) are permitted.
 *   **Non-Destructive Migrations:** If you alter the `dataLedger` JSON schema in the future, you must update the `loadLedger()` function to detect old JSON files and gracefully map their data to the new schema without deleting user data.

@@ -115,6 +115,52 @@
         .rate-inputs label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
         .rate-inputs input { width: 80px; padding: 6px 8px; font-weight: 500; text-align: center; }
 
+        /* Owner Filter Pill Bar */
+        .owner-filter-bar {
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 4px solid var(--accent-purple);
+        }
+        .filter-label { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; margin-left: 5px; }
+        .pill-btn {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .pill-btn:hover { background: #e5e7eb; }
+        .pill-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(67, 97, 238, 0.25);
+        }
+
+        .view-badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border: 1px solid #c7d2fe;
+        }
+
         /* Tab Navigation (.tab-nav) */
         .tab-nav {
             display: flex;
@@ -154,6 +200,42 @@
         .tab-panel.active {
             display: block;
         }
+
+        /* Manage Owners Card */
+        .owners-manager-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            border-top: 4px solid var(--accent-orange);
+        }
+        .owners-manager-card h3 { margin: 0 0 12px 0; color: var(--text-main); font-size: 1.1rem; }
+        .owner-input-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .owner-chips-list { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .owner-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .owner-chip-delete {
+            background: none;
+            border: none;
+            color: var(--accent-red);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .owner-chip-delete:hover { opacity: 0.8; }
 
         /* Control Panel / Form Card */
         .control-panel {
@@ -249,7 +331,7 @@
 
         /* Print Optimization */
         @media print {
-            .toolbar, .rate-bar, .tab-nav, .control-panel, .no-print-save, .row-actions { display: none !important; }
+            .toolbar, .rate-bar, .owner-filter-bar, .tab-nav, .control-panel, .owners-manager-card, .no-print-save, .row-actions { display: none !important; }
             body { background: white; }
             .header { box-shadow: none; color: black; background: white; border-bottom: 2px solid #000; }
             .tab-panel { display: block !important; }
@@ -307,6 +389,14 @@
 
         <!-- Tab 1: מבט על -->
         <div id="tabOverview" class="tab-panel active">
+            <!-- Owner Filter Bar -->
+            <div id="ownerFilterBar" class="owner-filter-bar no-print-save">
+                <span class="filter-label">סינון לפי בעלות:</span>
+                <div id="ownerPillsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+            </div>
+
+            <div id="activeViewBadge" class="view-badge">תצוגה: מאוחד</div>
+
             <!-- TOC -->
             <div class="section">
                 <div class="section-header">
@@ -363,6 +453,16 @@
 
         <!-- Tab 2: נתונים -->
         <div id="tabData" class="tab-panel">
+            <!-- Manage Owners Card -->
+            <div class="owners-manager-card">
+                <h3>👥 ניהול בעלים</h3>
+                <div class="owner-input-row">
+                    <input type="text" id="newOwnerInput" placeholder="שם בעלים חדש..." style="flex: 1; min-width: 200px;">
+                    <button class="btn-action btn-primary-action" onclick="handleAddOwner()">הוסף בעלים</button>
+                </div>
+                <div class="owner-chips-list" id="ownerChipsList"></div>
+            </div>
+
             <!-- Control Panel / Add Data Form -->
             <div class="control-panel">
                 <h2 id="formTitle">➕ הוספת נתון חדש</h2>
@@ -451,7 +551,7 @@
                     <summary>🏠 נדל״ן</summary>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>שם נכס</th><th>סוג נכס</th><th>שווי נכס</th><th>חוב / משכנתא</th><th>שוווי נטו</th><th>שוווי בש״ח</th><th>פעולות</th></tr></thead>
+                            <thead><tr><th>שם נכס</th><th>סוג נכס</th><th>בעלות</th><th>שווי נכס</th><th>חוב / משכנתא</th><th>שוווי נטו</th><th>שוווי בש״ח</th><th>פעולות</th></tr></thead>
                             <tbody id="tableRealestateBody"></tbody>
                         </table>
                     </div>
@@ -477,11 +577,13 @@
     <script>
         let dataLedger = {
             rates: { "₪": 1, "$": 3.65, "€": 3.95 },
+            owners: ["משותף"],
             versions: [{ id: "v_" + Date.now(), name: "בסיס - " + new Date().toLocaleDateString('he-IL'), data: [] }],
             title: "דוח תמונת מצב פיננסית",
             subtitle: "הוכן עבור פגישת ייעוץ | משפחת [הכנס שם משפחה]"
         };
         let currentVersionId = dataLedger.versions[0].id;
+        let selectedOwner = "ALL";
         let editingId = null;
         const TARGET_FILE_NAME = "financial_data.json";
 
@@ -513,7 +615,12 @@
         }
 
         async function init() {
+            if (!dataLedger.owners || !Array.isArray(dataLedger.owners) || dataLedger.owners.length === 0) {
+                dataLedger.owners = ["משותף"];
+            }
             renderDynamicForm();
+            renderOwnersManager();
+            renderOwnerFilterBar();
             if (window.location.protocol.startsWith('http')) {
                 document.getElementById('statusDot').classList.add('active');
                 document.getElementById('statusText').innerText = "מחובר לשרת - טוען נתונים...";
@@ -540,14 +647,126 @@
         function getCurrentVersionIndex() { return dataLedger.versions.findIndex(v => v.id === currentVersionId); }
         function getCurrentData() { const idx = getCurrentVersionIndex(); return idx >= 0 ? dataLedger.versions[idx].data : []; }
 
+        function getActiveOwnersList() {
+            if (!dataLedger.owners) dataLedger.owners = ["משותף"];
+            let set = new Set(dataLedger.owners);
+            const currentData = getCurrentData();
+            currentData.forEach(item => {
+                if (item.owner) set.add(item.owner);
+            });
+            return Array.from(set);
+        }
+
+        function renderOwnersManager() {
+            if (!dataLedger.owners) dataLedger.owners = ["משותף"];
+            const listEl = document.getElementById('ownerChipsList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            dataLedger.owners.forEach(owner => {
+                const chip = document.createElement('div');
+                chip.className = 'owner-chip';
+                chip.innerHTML = `
+                    <span>${owner}</span>
+                    <button class="owner-chip-delete" onclick="handleDeleteOwner('${owner}')" title="מחק בעלים">✖</button>
+                `;
+                listEl.appendChild(chip);
+            });
+        }
+
+        function handleAddOwner() {
+            const input = document.getElementById('newOwnerInput');
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            if (!dataLedger.owners) dataLedger.owners = ["משותף"];
+            if (dataLedger.owners.includes(val)) {
+                alert("שם בעלים זה כבר קיים ברשימה.");
+                return;
+            }
+            dataLedger.owners.push(val);
+            input.value = '';
+            renderOwnersManager();
+            renderDynamicForm();
+            renderOwnerFilterBar();
+            renderData();
+        }
+
+        function handleDeleteOwner(owner) {
+            if (!dataLedger.owners) dataLedger.owners = ["משותף"];
+            if (dataLedger.owners.length <= 1) {
+                alert("חייב להישאר לפחות בעלים אחד ברשימה.");
+                return;
+            }
+            // Check if any entry across any version uses this owner
+            let isUsed = false;
+            if (dataLedger.versions) {
+                dataLedger.versions.forEach(v => {
+                    if (v.data) {
+                        v.data.forEach(item => {
+                            if (item.owner === owner) isUsed = true;
+                        });
+                    }
+                });
+            }
+            if (isUsed) {
+                alert(`לא ניתן למחוק את הבעלים "${owner}" מכיוון שהוא בשימוש ברשומות קיימות.`);
+                return;
+            }
+            dataLedger.owners = dataLedger.owners.filter(o => o !== owner);
+            if (selectedOwner === owner) {
+                selectedOwner = "ALL";
+            }
+            renderOwnersManager();
+            renderDynamicForm();
+            renderOwnerFilterBar();
+            renderData();
+        }
+
+        function renderOwnerFilterBar() {
+            const container = document.getElementById('ownerPillsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const allOwners = getActiveOwnersList();
+            if (selectedOwner !== "ALL" && !allOwners.includes(selectedOwner)) {
+                selectedOwner = "ALL";
+            }
+
+            // "All (Unified)" button
+            const allBtn = document.createElement('button');
+            allBtn.className = `pill-btn ${selectedOwner === 'ALL' ? 'active' : ''}`;
+            allBtn.innerText = "הכל (מאוחד)";
+            allBtn.onclick = () => { selectedOwner = "ALL"; renderOwnerFilterBar(); renderData(); };
+            container.appendChild(allBtn);
+
+            allOwners.forEach(owner => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn ${selectedOwner === owner ? 'active' : ''}`;
+                btn.innerText = owner;
+                btn.onclick = () => { selectedOwner = owner; renderOwnerFilterBar(); renderData(); };
+                container.appendChild(btn);
+            });
+
+            const badge = document.getElementById('activeViewBadge');
+            if (badge) {
+                badge.innerText = selectedOwner === "ALL" ? "תצוגה: מאוחד" : `תצוגה: ${selectedOwner}`;
+            }
+        }
+
         function renderDynamicForm(dataToFill = null) {
             const type = document.getElementById('entryTypeSelect').value;
             const container = document.getElementById('dynamicFieldsContainer');
             container.innerHTML = '';
 
-            const ownerVal = dataToFill ? dataToFill.owner : 'שלי';
+            if (!dataLedger.owners || dataLedger.owners.length === 0) dataLedger.owners = ["משותף"];
+            const ownerVal = dataToFill ? dataToFill.owner : dataLedger.owners[0];
             const currVal = dataToFill ? dataToFill.currency : (type === 'rsu' ? '$' : '₪');
             const amtVal = dataToFill ? dataToFill.amount : '';
+
+            let ownerOptionsHtml = '';
+            dataLedger.owners.forEach(o => {
+                ownerOptionsHtml += `<option value="${o}" ${ownerVal===o?'selected':''}>${o}</option>`;
+            });
 
             if (type === 'stock') {
                 container.innerHTML = `
@@ -557,7 +776,7 @@
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcStockAmount()" value="${dataToFill?.sharesCount || ''}"></div>
                     <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcStockAmount()" value="${dataToFill?.price || ''}"></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>רמת סיכון</label><select id="dyn_risk"><option value="נמוכה" ${dataToFill?.risk==='נמוכה'?'selected':''}>נמוכה</option><option value="בינונית" ${dataToFill?.risk==='בינונית'?'selected':''}>בינונית</option><option value="גבוהה" ${dataToFill?.risk==='גבוהה'?'selected':''}>גבוהה</option></select></div>
                     <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
                 `;
@@ -565,7 +784,7 @@
                 container.innerHTML = `
                     <div class="input-group"><label>שם נכס</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
                     <div class="input-group"><label>סוג נכס</label><select id="dyn_reType"><option value="מגורים" ${(dataToFill?.reType || dataToFill?.realtyType)==='מגורים'?'selected':''}>מגורים</option><option value="השקעה" ${(dataToFill?.reType || dataToFill?.realtyType)==='השקעה'?'selected':''}>השקעה</option></select></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>שווי נכס (סכום)</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
                     <div class="input-group"><label>חוב / משכנתא</label><input type="number" min="0" step="any" id="dyn_debt" value="${dataToFill?.debt !== undefined ? dataToFill.debt : (dataToFill?.debtAmount || 0)}"></div>
@@ -575,7 +794,7 @@
                     <div class="input-group"><label>קטגוריה</label><select id="dyn_pensionCategory"><option value="פנסיה" ${dataToFill?.pensionCategory==='פנסיה'?'selected':''}>פנסיה</option><option value="קרן השתלמות" ${dataToFill?.pensionCategory==='קרן השתלמות'?'selected':''}>קרן השתלמות</option></select></div>
                     <div class="input-group"><label>מסלול</label><input type="text" id="dyn_track" required value="${dataToFill?.track || ''}"></div>
                     <div class="input-group"><label>בית השקעות</label><input type="text" id="dyn_fundHouse" required value="${dataToFill?.fundHouse || ''}"></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option></select></div>
                     <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
                 `;
@@ -584,14 +803,14 @@
                     <div class="input-group"><label>שם חברה</label><input type="text" id="dyn_companyName" required value="${dataToFill?.companyName || ''}"></div>
                     <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcRsuAmount()" value="${dataToFill?.sharesCount || ''}"></div>
                     <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcRsuAmount()" value="${dataToFill?.price || ''}"></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
                 `;
             } else if (type === 'cash') {
                 container.innerHTML = `
                     <div class="input-group"><label>סוג</label><select id="dyn_cashType"><option value="עו״ש" ${dataToFill?.cashType==='עו״ש'?'selected':''}>עו״ש</option><option value="קרן כספית" ${dataToFill?.cashType==='קרן כספית'?'selected':''}>קרן כספית</option></select></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
                 `;
@@ -600,7 +819,7 @@
                     <div class="input-group"><label>תיאור</label><input type="text" id="dyn_desc" required value="${dataToFill?.desc || ''}"></div>
                     <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" required value="${dataToFill?.region || ''}"></div>
                     <div class="input-group"><label>סטטוס נזילות</label><select id="dyn_liquidity"><option value="חופשי" ${dataToFill?.liquidity==='חופשי'?'selected':''}>חופשי</option><option value="נעול" ${dataToFill?.liquidity==='נעול'?'selected':''}>נעול</option></select></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>רמת סיכון</label><select id="dyn_risk"><option value="נמוכה" ${dataToFill?.risk==='נמוכה'?'selected':''}>נמוכה</option><option value="בינונית" ${dataToFill?.risk==='בינונית'?'selected':''}>בינונית</option><option value="גבוהה" ${dataToFill?.risk==='גבוהה'?'selected':''}>גבוהה</option></select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
@@ -608,7 +827,7 @@
             } else if (type === 'debt') {
                 container.innerHTML = `
                     <div class="input-group"><label>תיאור</label><input type="text" id="dyn_desc" required value="${dataToFill?.desc || ''}"></div>
-                    <div class="input-group"><label>בעלות</label><select id="dyn_owner"><option value="שלי" ${ownerVal==='שלי'?'selected':''}>שלי</option><option value="נעמה" ${ownerVal==='נעמה'?'selected':''}>נעמה</option><option value="משותף" ${ownerVal==='משותף'?'selected':''}>משותף</option></select></div>
+                    <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
                 `;
@@ -639,7 +858,7 @@
             }
         }
 
-        function switchVersion(versionId) { currentVersionId = versionId; renderData(); }
+        function switchVersion(versionId) { currentVersionId = versionId; renderOwnerFilterBar(); renderData(); }
 
         function updateVersionDropdown() {
             const select = document.getElementById('versionSelect'); select.innerHTML = '';
@@ -705,6 +924,21 @@
                     currentVersionId = dataLedger.versions[dataLedger.versions.length - 1].id;
                 }
             } else { alert("מבנה קובץ אינו תואם."); return; }
+
+            // Auto-generate or load owners
+            let ownersSet = new Set(["משותף"]);
+            if (loadedData && loadedData.owners && Array.isArray(loadedData.owners)) {
+                loadedData.owners.forEach(o => ownersSet.add(o));
+            }
+            dataLedger.versions.forEach(v => {
+                if (v.data) {
+                    v.data.forEach(item => {
+                        if (item.owner) ownersSet.add(item.owner);
+                    });
+                }
+            });
+            dataLedger.owners = Array.from(ownersSet);
+            selectedOwner = "ALL";
             
             if (dataLedger.rates) {
                 if(document.getElementById('rateUSD')) document.getElementById('rateUSD').value = dataLedger.rates["$"] || 3.65;
@@ -712,7 +946,11 @@
             }
             if(dataLedger.title) document.getElementById('reportTitle').innerText = dataLedger.title;
             if(dataLedger.subtitle) document.getElementById('reportSubtitle').innerText = dataLedger.subtitle;
-            updateVersionDropdown(); renderData();
+            updateVersionDropdown();
+            renderOwnersManager();
+            renderDynamicForm();
+            renderOwnerFilterBar();
+            renderData();
         }
 
         function migrateLegacyItem(item) {
@@ -801,6 +1039,7 @@
             document.getElementById('dataForm').reset();
             document.getElementById('entryTypeSelect').value = 'stock';
             renderDynamicForm();
+            renderOwnerFilterBar();
             renderData();
         }
 
@@ -832,6 +1071,7 @@
         function deleteItem(id) {
             const idx = getCurrentVersionIndex();
             dataLedger.versions[idx].data = dataLedger.versions[idx].data.filter(item => item.id !== id);
+            renderOwnerFilterBar();
             renderData();
         }
 
@@ -853,6 +1093,10 @@
             let counts = { stock: 0, rsu: 0, cash: 0, alternative: 0, pension: 0, realestate: 0, debt: 0 };
             
             let rawData = getCurrentData();
+            let filteredData = rawData.filter(item => {
+                if (selectedOwner === "ALL") return true;
+                return item.owner === selectedOwner;
+            });
 
             // Aggregation structures for Pie Chart 1 (Assets Breakdown)
             let rsuMap = {};
@@ -871,7 +1115,7 @@
             let grossAssetsILS = 0;
             let realEstateDebtsILS = 0;
 
-            rawData.forEach(item => {
+            filteredData.forEach(item => {
                 const tr = document.createElement('tr');
                 const actionsHtml = `
                     <div class="row-actions">
@@ -983,6 +1227,7 @@
                     tr.innerHTML = `
                         <td><strong>${item.name || ''}</strong></td>
                         <td><span class="tag" style="background: #e5e7eb;">${rType}</span></td>
+                        <td>${item.owner}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
                         <td class="amount-cell" style="color: var(--accent-red);">${debtAmt > 0 ? '-' + formatCurrency(debtAmt) + ' ' + getCurrencySymbol(item.currency) : '0'}</td>
                         <td class="amount-cell">${formatCurrency(item.amount - debtAmt)} ${getCurrencySymbol(item.currency)}</td>
@@ -1009,7 +1254,7 @@
                 cash: ['sectionCash', tables.cash, '<tr><td colspan="5" class="empty-state">לא הוזנו נתונים במזומן</td></tr>'],
                 alternative: ['sectionAlternative', tables.alternative, '<tr><td colspan="8" class="empty-state">לא הוזנו נתונים בהשקעות אלטרנטיביות</td></tr>'],
                 pension: ['sectionPension', tables.pension, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בפנסיה וקרן השתלמות</td></tr>'],
-                realestate: ['sectionRealestate', tables.realestate, '<tr><td colspan="7" class="empty-state">לא הוזנו נתונים בנדל״ן</td></tr>'],
+                realestate: ['sectionRealestate', tables.realestate, '<tr><td colspan="8" class="empty-state">לא הוזנו נתונים בנדל״ן</td></tr>'],
                 debt: ['sectionDebt', tables.debt, '<tr><td colspan="5" class="empty-state">לא הוזנו נתונים בהלוואות / חובות</td></tr>']
             };
 
