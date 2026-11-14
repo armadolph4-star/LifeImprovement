@@ -53,8 +53,8 @@ let dataLedger = {
 ## 5. Adding New Features (Agent Instructions)
 *   **Adding a new Category:** Add it to the `<select id="categoryInput">` options, assign it a color in `categoryColors`, and update the `if/else` sorting logic inside `renderData()` to route it to the correct table.
 *   **Adding a New Tab:** 
-    1. Add a corresponding navigation `<button class="tab-btn" onclick="switchTab('tabId')">Tab Name</button>` inside `.tab-nav`.
-    2. Create a matching `.tab-panel` container with `id="tabId"` containing the desired section content.
+    1. Add a corresponding navigation `<button class="tab-btn" onclick="switchTab('tabId')">Tab Name</button>` inside `.tab-nav` (e.g., the **מניות** tab positioned between מבט על and נתונים).
+    2. Create a matching `.tab-panel` container with `id="tabId"` containing the desired section content (such as `#tab-stocks` for stock portfolio analytics and KPIs).
     3. Verify that `@media print` rules force all `.tab-panel` elements to display properly so that multi-tab content is fully exported during native printing.
 *   **Modifying the UI:** Ensure changes respect the strict DOM hierarchy (Toolbar -> Tab Navigation -> Tab Panels -> Tables).
 *   **State Changes:** Any mutation to data *must* be followed by a call to `renderData()` and *must only* mutate `dataLedger.versions[getCurrentVersionIndex()].data`.

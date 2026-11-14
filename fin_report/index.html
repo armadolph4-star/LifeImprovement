@@ -345,6 +345,14 @@
 </head>
 <body>
 
+    <datalist id="regionsDatalist">
+        <option value="ארה״ב">
+        <option value="גלובלי">
+        <option value="ישראל">
+        <option value="אירופה">
+        <option value="אסיה">
+    </datalist>
+
     <div class="container">
         <!-- 1. Header -->
         <div class="header">
@@ -384,6 +392,7 @@
         <!-- Tab Navigation -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('tabOverview')">מבט על</button>
+            <button class="tab-btn" onclick="switchTab('tab-stocks')">מניות</button>
             <button class="tab-btn" onclick="switchTab('tabData')">נתונים</button>
         </div>
 
@@ -446,6 +455,53 @@
                         <div class="pie-chart" id="pensionPieChart"></div>
                         <div class="chart-legend" id="pensionLegend"></div>
                         <p class="total-display">סה"כ: <span id="pensionTotal">0</span> ₪</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Tab: מניות (#tab-stocks) -->
+        <div id="tab-stocks" class="tab-panel">
+            <!-- Synced Owner Badge / Filter -->
+            <div class="owner-filter-bar no-print-save">
+                <span class="filter-label">סינון לפי בעלות (מניות):</span>
+                <div id="stockOwnerPillsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+            </div>
+            <div id="stockActiveViewBadge" class="view-badge">תצוגה: מאוחד</div>
+
+            <!-- KPI Header for Stocks -->
+            <div class="kpi-bar">
+                <div class="kpi-card">
+                    <h4>סה״כ שווי תיק מניות בש״ח</h4>
+                    <p class="kpi-value" id="kpiStockTotal">0 ₪</p>
+                </div>
+            </div>
+
+            <!-- Three Dynamic Stock Pie Charts -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📊 ניתוח תיק מניות</h2>
+                </div>
+                <div class="summary-grid">
+                    <!-- Chart 1: By Region -->
+                    <div class="chart-container">
+                        <h3>🌐 התפלגות לפי איזור השקעה (בש״ח)</h3>
+                        <div class="pie-chart" id="stockRegionPieChart"></div>
+                        <div class="chart-legend" id="stockRegionLegend"></div>
+                    </div>
+
+                    <!-- Chart 2: By Currency -->
+                    <div class="chart-container">
+                        <h3>💱 התפלגות לפי מטבע מסחר (בש״ח)</h3>
+                        <div class="pie-chart" id="stockCurrencyPieChart"></div>
+                        <div class="chart-legend" id="stockCurrencyLegend"></div>
+                    </div>
+
+                    <!-- Chart 3: By Risk -->
+                    <div class="chart-container">
+                        <h3>⚠️ חלוקה לפי רמת סיכון (בש״ח)</h3>
+                        <div class="pie-chart" id="stockRiskPieChart"></div>
+                        <div class="chart-legend" id="stockRiskLegend"></div>
                     </div>
                 </div>
             </div>
@@ -697,7 +753,6 @@
                 alert("חייב להישאר לפחות בעלים אחד ברשימה.");
                 return;
             }
-            // Check if any entry across any version uses this owner
             let isUsed = false;
             if (dataLedger.versions) {
                 dataLedger.versions.forEach(v => {
@@ -723,16 +778,37 @@
         }
 
         function renderOwnerFilterBar() {
+            // Render main overview filter bar
             const container = document.getElementById('ownerPillsContainer');
-            if (!container) return;
-            container.innerHTML = '';
+            if (container) {
+                container.innerHTML = '';
+                buildPills(container);
+            }
 
+            // Render stock tab filter bar
+            const stockContainer = document.getElementById('stockOwnerPillsContainer');
+            if (stockContainer) {
+                stockContainer.innerHTML = '';
+                buildPills(stockContainer);
+            }
+
+            const badge = document.getElementById('activeViewBadge');
+            if (badge) {
+                badge.innerText = selectedOwner === "ALL" ? "תצוגה: מאוחד" : `תצוגה: ${selectedOwner}`;
+            }
+
+            const stockBadge = document.getElementById('stockActiveViewBadge');
+            if (stockBadge) {
+                stockBadge.innerText = selectedOwner === "ALL" ? "תצוגה: מאוחד" : `תצוגה: ${selectedOwner}`;
+            }
+        }
+
+        function buildPills(container) {
             const allOwners = getActiveOwnersList();
             if (selectedOwner !== "ALL" && !allOwners.includes(selectedOwner)) {
                 selectedOwner = "ALL";
             }
 
-            // "All (Unified)" button
             const allBtn = document.createElement('button');
             allBtn.className = `pill-btn ${selectedOwner === 'ALL' ? 'active' : ''}`;
             allBtn.innerText = "הכל (מאוחד)";
@@ -746,17 +822,40 @@
                 btn.onclick = () => { selectedOwner = owner; renderOwnerFilterBar(); renderData(); };
                 container.appendChild(btn);
             });
+        }
 
-            const badge = document.getElementById('activeViewBadge');
-            if (badge) {
-                badge.innerText = selectedOwner === "ALL" ? "תצוגה: מאוחד" : `תצוגה: ${selectedOwner}`;
+        function updateRegionsDatalist() {
+            const datalist = document.getElementById('regionsDatalist');
+            if (!datalist) return;
+            const defaultRegions = ["ארה״ב", "גלובלי", "ישראל", "אירופה", "אסיה"];
+            let uniqueRegions = new Set(defaultRegions);
+            
+            if (dataLedger && dataLedger.versions) {
+                dataLedger.versions.forEach(v => {
+                    if (v.data) {
+                        v.data.forEach(item => {
+                            if (item.entryType === 'stock' && item.region) {
+                                uniqueRegions.add(item.region.trim());
+                            }
+                        });
+                    }
+                });
             }
+
+            datalist.innerHTML = '';
+            Array.from(uniqueRegions).forEach(reg => {
+                const opt = document.createElement('option');
+                opt.value = reg;
+                datalist.appendChild(opt);
+            });
         }
 
         function renderDynamicForm(dataToFill = null) {
             const type = document.getElementById('entryTypeSelect').value;
             const container = document.getElementById('dynamicFieldsContainer');
             container.innerHTML = '';
+
+            updateRegionsDatalist();
 
             if (!dataLedger.owners || dataLedger.owners.length === 0) dataLedger.owners = ["משותף"];
             const ownerVal = dataToFill ? dataToFill.owner : dataLedger.owners[0];
@@ -772,7 +871,7 @@
                 container.innerHTML = `
                     <div class="input-group"><label>שם מניה</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
                     <div class="input-group"><label>תיאור (אופציונלי)</label><input type="text" id="dyn_desc" value="${dataToFill?.desc || ''}"></div>
-                    <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" required placeholder="למשל: ארה״ב / ישראל" value="${dataToFill?.region || ''}"></div>
+                    <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" list="regionsDatalist" required placeholder="למשל: ארה״ב / ישראל" value="${dataToFill?.region || ''}"></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcStockAmount()" value="${dataToFill?.sharesCount || ''}"></div>
                     <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcStockAmount()" value="${dataToFill?.price || ''}"></div>
@@ -925,7 +1024,6 @@
                 }
             } else { alert("מבנה קובץ אינו תואם."); return; }
 
-            // Auto-generate or load owners
             let ownersSet = new Set(["משותף"]);
             if (loadedData && loadedData.owners && Array.isArray(loadedData.owners)) {
                 loadedData.owners.forEach(o => ownersSet.add(o));
@@ -1000,7 +1098,7 @@
             if (type === 'stock') {
                 item.name = document.getElementById('dyn_name').value;
                 item.desc = document.getElementById('dyn_desc').value;
-                item.region = document.getElementById('dyn_region').value;
+                item.region = document.getElementById('dyn_region').value ? document.getElementById('dyn_region').value.trim() : "";
                 item.sharesCount = parseFloat(document.getElementById('dyn_shares').value) || 0;
                 item.price = parseFloat(document.getElementById('dyn_price').value) || 0;
                 item.risk = document.getElementById('dyn_risk').value;
@@ -1020,7 +1118,7 @@
                 item.cashType = document.getElementById('dyn_cashType').value;
             } else if (type === 'alternative') {
                 item.desc = document.getElementById('dyn_desc').value;
-                item.region = document.getElementById('dyn_region').value;
+                item.region = document.getElementById('dyn_region').value ? document.getElementById('dyn_region').value.trim() : "";
                 item.liquidity = document.getElementById('dyn_liquidity').value;
                 item.risk = document.getElementById('dyn_risk').value;
             } else if (type === 'debt') {
@@ -1098,7 +1196,6 @@
                 return item.owner === selectedOwner;
             });
 
-            // Aggregation structures for Pie Chart 1 (Assets Breakdown)
             let rsuMap = {};
             let lowRiskStocksILS = 0;
             let otherStocksILS = 0;
@@ -1107,13 +1204,17 @@
             let alternativeILS = 0;
             let cashILS = 0;
 
-            // Aggregation for Pie Chart 2 (Pension & Study Funds)
             let pensionMap = {};
             let pensionTotalILS = 0;
 
-            // KPI calculations
             let grossAssetsILS = 0;
             let realEstateDebtsILS = 0;
+
+            // Stock specific charts aggregates
+            let stockTotalILS = 0;
+            let stockRegionMap = {};
+            let stockCurrencyMap = {};
+            let stockRiskMap = {};
 
             filteredData.forEach(item => {
                 const tr = document.createElement('tr');
@@ -1128,6 +1229,22 @@
                 if (item.entryType === 'stock') {
                     counts.stock++;
                     grossAssetsILS += ilsVal;
+                    stockTotalILS += ilsVal;
+
+                    // Region grouping
+                    let reg = item.region ? item.region.trim() : "";
+                    if (!reg) reg = "לא מוגדר";
+                    stockRegionMap[reg] = (stockRegionMap[reg] || 0) + ilsVal;
+
+                    // Currency grouping
+                    let curr = item.currency || "₪";
+                    stockCurrencyMap[curr] = (stockCurrencyMap[curr] || 0) + ilsVal;
+
+                    // Risk grouping
+                    let rsk = item.risk || "בינונית";
+                    if (rsk === "נמוכה") rsk = "נמוכה (אג״ח)";
+                    stockRiskMap[rsk] = (stockRiskMap[rsk] || 0) + ilsVal;
+
                     if (item.risk === 'נמוכה') {
                         lowRiskStocksILS += ilsVal;
                     } else {
@@ -1268,10 +1385,10 @@
                 }
             }
 
-            updateDashboardKPIsAndCharts(grossAssetsILS, realEstateDebtsILS, rsuMap, lowRiskStocksILS, otherStocksILS, reInvestmentILS, reResidentialILS, alternativeILS, cashILS, pensionMap, pensionTotalILS);
+            updateDashboardKPIsAndCharts(grossAssetsILS, realEstateDebtsILS, rsuMap, lowRiskStocksILS, otherStocksILS, reInvestmentILS, reResidentialILS, alternativeILS, cashILS, pensionMap, pensionTotalILS, stockTotalILS, stockRegionMap, stockCurrencyMap, stockRiskMap);
         }
 
-        function updateDashboardKPIsAndCharts(grossAssets, reDebts, rsuMap, lowRiskStocks, otherStocks, reInv, reRes, alt, cash, pensionMap, pensionTotal) {
+        function updateDashboardKPIsAndCharts(grossAssets, reDebts, rsuMap, lowRiskStocks, otherStocks, reInv, reRes, alt, cash, pensionMap, pensionTotal, stockTotal, stockRegionMap, stockCurrencyMap, stockRiskMap) {
             const netWorth = grossAssets - reDebts;
 
             document.getElementById('kpiGrossAssets').innerText = formatCurrency(grossAssets) + " ₪";
@@ -1280,6 +1397,12 @@
             const netWorthEl = document.getElementById('kpiNetWorth');
             netWorthEl.innerText = formatCurrency(netWorth) + " ₪";
             netWorthEl.style.color = netWorth >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+
+            // Stock Tab KPI and Charts
+            document.getElementById('kpiStockTotal').innerText = formatCurrency(stockTotal) + " ₪";
+            applyPieChartWithLegend('stockRegionPieChart', 'stockRegionLegend', stockRegionMap, stockTotal);
+            applyPieChartWithLegend('stockCurrencyPieChart', 'stockCurrencyLegend', stockCurrencyMap, stockTotal);
+            applyPieChartWithLegend('stockRiskPieChart', 'stockRiskLegend', stockRiskMap, stockTotal);
 
             // Build Assets Breakdown Map
             let assetsMap = {};
@@ -1298,7 +1421,6 @@
 
             applyPieChartWithLegend('assetsPieChart', 'assetsLegend', assetsMap, totalAssetsSum);
 
-            // Pension Total & Chart
             document.getElementById('pensionTotal').innerText = formatCurrency(pensionTotal);
             applyPieChartWithLegend('pensionPieChart', 'pensionLegend', pensionMap, pensionTotal);
         }
