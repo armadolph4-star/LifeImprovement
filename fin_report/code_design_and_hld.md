@@ -58,3 +58,7 @@ let dataLedger = {
     3. Verify that `@media print` rules force all `.tab-panel` elements to display properly so that multi-tab content is fully exported during native printing.
 *   **Modifying the UI:** Ensure changes respect the strict DOM hierarchy (Toolbar -> Tab Navigation -> Tab Panels -> Tables).
 *   **State Changes:** Any mutation to data *must* be followed by a call to `renderData()` and *must only* mutate `dataLedger.versions[getCurrentVersionIndex()].data`.
+*   **V3.1 Dynamic Market & FX Sync Schema Updates:**
+    *   **Ledger-level rates:** Maintain `dataLedger.rates` as active rates used by `toILS()`, alongside `dataLedger.defaultRates` (user-defined fallback rates) and `dataLedger.ratesMeta` (`{ source: "manual" | "live" | "fallback", updatedAt: string | null }`).
+    *   **Item-level fields for `stock` and `rsu`:** `ticker` (`string`, optional), `manualPrice` (`number`, default price per share), `price` (`number`, effective price), `priceSource` (`"manual" | "live" | "fallback"`), and `priceUpdatedAt` (`string | null`).
+    *   **Active-Snapshot Market Fetch:** Triggered strictly on-demand via `refreshDynamicMarketData()`. It fetches FX rates and stock/RSU quotes for the currently active snapshot version only, utilizing a 5-second `AbortController` timeout and falling back gracefully to `defaultRates` and `manualPrice` when offline, unconfigured, or blocked.

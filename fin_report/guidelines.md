@@ -25,3 +25,7 @@ The user prefers a highly readable, structured, and non-overwhelming interface. 
 *   **Single File Mandate & Modularity:** Single-file `index.html` is preferred for `file://` portability up to ~2,000 lines. However, splitting into modular files (`index.html`, `styles.css`, `app.js`) is permitted when file size or complexity warrants it (noting `file://` CORS caveats).
 *   **Vanilla JS:** Use modern Vanilla JavaScript (ES6+). No frameworks (React, Vue, etc.) are permitted.
 *   **Non-Destructive Migrations:** If you alter the `dataLedger` JSON schema in the future, you must update the `loadLedger()` function to detect old JSON files and gracefully map their data to the new schema without deleting user data.
+
+## 5. External Market Data & Resilient Fallbacks
+- **User-Triggered Only:** External market data requests (such as `open.er-api.com` for FX rates and Yahoo Finance chart endpoints for stock/RSU quotes) are executed strictly on-demand when the user clicks `🔄 רענן שערי מט״ח ומניות`. They never trigger automatically on `init()` to protect historical snapshots and avoid background network leaks.
+- **Zero API Keys & Offline Gracefulness:** All network fetches operate without API keys and use a 5-second `AbortController` timeout. If offline, unconfigured, or blocked by CORS (e.g. on `file://`), the application gracefully falls back to user-defined default rates (`defaultRates`) and manual share prices (`manualPrice`), updating status badges accordingly.

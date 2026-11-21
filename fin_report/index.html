@@ -106,11 +106,11 @@
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
             border-top: 4px solid var(--accent-blue);
         }
-        .rate-bar span { font-weight: 600; color: var(--primary); }
+        .rate-bar span.bar-title { font-weight: 600; color: var(--primary); }
         .rate-inputs { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         .rate-inputs label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
         .rate-inputs input { width: 80px; padding: 6px 8px; font-weight: 500; text-align: center; }
@@ -224,6 +224,18 @@
             font-size: 0.9rem;
             font-weight: 500;
         }
+        .owner-chip-rename {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .owner-chip-rename:hover { opacity: 0.8; }
         .owner-chip-delete {
             background: none;
             border: none;
@@ -323,9 +335,11 @@
         .empty-state { text-align: center; color: var(--text-muted); padding: 30px; font-style: italic; background: #ffffff; border-radius: 8px; }
 
         /* Tags */
-        .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; }
         .tag-status-free { background-color: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
         .tag-status-locked { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .tag-status-fallback { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .tag-status-manual { background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
 
         .no-print-save { text-align: center; margin-top: 40px; padding: 20px; }
 
@@ -380,13 +394,17 @@
             </div>
         </div>
 
-        <!-- Exchange Rate Bar -->
+        <!-- Exchange Rate & Local Market Prices Bar -->
         <div class="rate-bar no-print-save">
-            <span>שערי המרה ל-₪:</span>
+            <span class="bar-title">שערי המרה ל-₪:</span>
             <div class="rate-inputs">
                 <label>$ (דולר): <input type="number" step="0.01" id="rateUSD" value="3.65" oninput="onRateChange()"></label>
                 <label>€ (אירו): <input type="number" step="0.01" id="rateEUR" value="3.95" oninput="onRateChange()"></label>
             </div>
+            <button class="btn-action btn-primary-action" onclick="loadMarketPricesFromHttp()" title="טוען אוטומטית את קובץ market_prices.json בעבודה דרך שרת מקומי">🔄 טען מחירי שוק (market_prices.json)</button>
+            <button class="btn-action" onclick="document.getElementById('marketPricesUpload').click()" title="בחר קובץ market_prices.json ידנית במצב file://">📥 ייבא קובץ מחירים</button>
+            <input type="file" id="marketPricesUpload" style="display: none;" accept=".json" onchange="importMarketPricesFile(event)">
+            <span id="liveSyncStatus" class="tag tag-status-manual">ידני</span>
         </div>
 
         <!-- Tab Navigation -->
@@ -633,6 +651,8 @@
     <script>
         let dataLedger = {
             rates: { "₪": 1, "$": 3.65, "€": 3.95 },
+            defaultRates: { "₪": 1, "$": 3.65, "€": 3.95 },
+            ratesMeta: { source: "manual", updatedAt: null },
             owners: ["משותף"],
             versions: [{ id: "v_" + Date.now(), name: "בסיס - " + new Date().toLocaleDateString('he-IL'), data: [] }],
             title: "דוח תמונת מצב פיננסית",
@@ -642,6 +662,7 @@
         let selectedOwner = "ALL";
         let editingId = null;
         const TARGET_FILE_NAME = "financial_data.json";
+        const MARKET_PRICES_FILE_NAME = "market_prices.json";
 
         const highContrastPalette = [
             "#4361ee", "#3a86ff", "#06d6a0", "#ffd166", "#ef476f", 
@@ -659,7 +680,148 @@
             const usdInput = parseFloat(document.getElementById('rateUSD').value) || 3.65;
             const eurInput = parseFloat(document.getElementById('rateEUR').value) || 3.95;
             dataLedger.rates = { "₪": 1, "$": usdInput, "€": eurInput };
+            dataLedger.defaultRates = { "₪": 1, "$": usdInput, "€": eurInput };
+            dataLedger.ratesMeta = { source: "manual", updatedAt: null };
+            updateLiveSyncStatusBadge();
             renderData();
+        }
+
+        function updateLiveSyncStatusBadge() {
+            const badge = document.getElementById('liveSyncStatus');
+            if (!badge) return;
+            const meta = dataLedger.ratesMeta || { source: "manual", updatedAt: null };
+            if (meta.source === "live") {
+                badge.className = "tag tag-status-free";
+                badge.innerText = `מחירי שוק (${meta.updatedAt || ''})`;
+            } else if (meta.source === "fallback") {
+                badge.className = "tag tag-status-fallback";
+                badge.innerText = `ברירת מחדל${meta.updatedAt ? ' (' + meta.updatedAt + ')' : ''}`;
+            } else {
+                badge.className = "tag tag-status-manual";
+                badge.innerText = "ידני";
+            }
+        }
+
+        async function loadMarketPricesFromHttp() {
+            if (!window.location.protocol.startsWith('http')) {
+                alert("בפתיחה ישירה מהמחשב (file://), הדפדפן חוסם קריאת קבצים אוטומטית.\nאנא לחץ על כפתור '📥 ייבא קובץ מחירים' ובחר את הקובץ market_prices.json.");
+                return;
+            }
+            try {
+                const res = await fetch(`${MARKET_PRICES_FILE_NAME}?t=${Date.now()}`);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const marketData = await res.json();
+                applyMarketPrices(marketData);
+            } catch (err) {
+                alert(`לא ניתן לטעון את ${MARKET_PRICES_FILE_NAME} (${err.message}).\nודא שהרצת קודם את fetch_prices.py בתיקייה, או השתמש בכפתור '📥 ייבא קובץ מחירים'.`);
+            }
+        }
+
+        function importMarketPricesFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const marketData = JSON.parse(e.target.result);
+                    applyMarketPrices(marketData);
+                } catch (err) {
+                    alert("שגיאה בקריאת קובץ המחירים. ודא שזהו קובץ JSON תקין (market_prices.json).");
+                } finally {
+                    document.getElementById('marketPricesUpload').value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function applyMarketPrices(marketData) {
+            if (!marketData || typeof marketData !== 'object') {
+                alert("מבנה קובץ המחירים אינו תקין.");
+                return;
+            }
+
+            if (!dataLedger.defaultRates) {
+                dataLedger.defaultRates = {
+                    "₪": 1,
+                    "$": dataLedger.rates?.["$"] || 3.65,
+                    "€": dataLedger.rates?.["€"] || 3.95
+                };
+            }
+
+            const updatedAt = marketData.updatedAt || new Date().toISOString().slice(0, 10);
+            const incomingRates = marketData.rates && typeof marketData.rates === 'object' ? marketData.rates : null;
+
+            if (incomingRates && (typeof incomingRates["$"] === 'number' || typeof incomingRates["€"] === 'number')) {
+                dataLedger.rates = {
+                    "₪": 1,
+                    "$": typeof incomingRates["$"] === 'number' && incomingRates["$"] > 0 ? incomingRates["$"] : dataLedger.defaultRates["$"],
+                    "€": typeof incomingRates["€"] === 'number' && incomingRates["€"] > 0 ? incomingRates["€"] : dataLedger.defaultRates["€"]
+                };
+                dataLedger.ratesMeta = { source: "live", updatedAt };
+            } else {
+                dataLedger.rates = { ...dataLedger.defaultRates };
+                dataLedger.ratesMeta = { source: "fallback", updatedAt };
+            }
+
+            const rateUsdEl = document.getElementById('rateUSD');
+            const rateEurEl = document.getElementById('rateEUR');
+            if (rateUsdEl) rateUsdEl.value = dataLedger.rates["$"];
+            if (rateEurEl) rateEurEl.value = dataLedger.rates["€"];
+
+            // Normalize incoming price lookup keys to uppercase
+            const rawPrices = marketData.prices && typeof marketData.prices === 'object' ? marketData.prices : {};
+            const normalizedPrices = {};
+            for (const [key, val] of Object.entries(rawPrices)) {
+                normalizedPrices[key.trim().toUpperCase()] = val;
+            }
+
+            // Update ONLY the currently active snapshot version
+            const activeVersionIdx = getCurrentVersionIndex();
+            const activeItems = activeVersionIdx >= 0 ? dataLedger.versions[activeVersionIdx].data : [];
+
+            let matchedCount = 0;
+            let fallbackCount = 0;
+
+            activeItems.forEach(item => {
+                if (item.entryType !== 'stock' && item.entryType !== 'rsu') return;
+
+                if (item.manualPrice === undefined) {
+                    item.manualPrice = Number(item.price) || 0;
+                }
+
+                const normTicker = typeof item.ticker === 'string' ? item.ticker.trim().toUpperCase() : "";
+                const quote = normTicker ? normalizedPrices[normTicker] : null;
+
+                if (quote && typeof quote.price === 'number' && quote.price > 0) {
+                    item.price = Number(quote.price);
+                    item.priceSource = "live";
+                    item.priceDate = quote.date || updatedAt;
+                    item.priceUpdatedAt = item.priceDate;
+                    if (quote.currency && !item.currency) {
+                        item.currency = quote.currency;
+                    }
+                    matchedCount++;
+                } else {
+                    item.price = Number(item.manualPrice) || 0;
+                    item.priceSource = "fallback";
+                    item.priceDate = null;
+                    item.priceUpdatedAt = null;
+                    fallbackCount++;
+                }
+
+                const shares = Number(item.sharesCount) || 0;
+                item.amount = Number((shares * item.price).toFixed(2));
+            });
+
+            updateLiveSyncStatusBadge();
+            renderData();
+
+            const fxLabel = dataLedger.ratesMeta.source === 'live'
+                ? `$=${dataLedger.rates["$"]}, €=${dataLedger.rates["€"]}`
+                : 'ברירת מחדל';
+            alert(`מחירי שוק הוחלו על הגרסה הפעילה בלבד (${updatedAt}):\n• שערי מט״ח: ${fxLabel}\n• ניירות שעודכנו ממחירי שוק: ${matchedCount}\n• ניירות שחזרו למחיר ברירת מחדל: ${fallbackCount}`);
         }
 
         function switchTab(tabId) {
@@ -677,6 +839,7 @@
             renderDynamicForm();
             renderOwnersManager();
             renderOwnerFilterBar();
+            updateLiveSyncStatusBadge();
             if (window.location.protocol.startsWith('http')) {
                 document.getElementById('statusDot').classList.add('active');
                 document.getElementById('statusText').innerText = "מחובר לשרת - טוען נתונים...";
@@ -723,10 +886,54 @@
                 chip.className = 'owner-chip';
                 chip.innerHTML = `
                     <span>${owner}</span>
+                    <button class="owner-chip-rename" onclick="renameOwner('${owner}')" title="שנה שם בעלים">✏️</button>
                     <button class="owner-chip-delete" onclick="handleDeleteOwner('${owner}')" title="מחק בעלים">✖</button>
                 `;
                 listEl.appendChild(chip);
             });
+        }
+
+        function renameOwner(oldName) {
+            const rawNewName = prompt("הכנס שם חדש עבור הבעלים:", oldName);
+            if (rawNewName === null) return;
+            const newName = rawNewName.trim();
+            if (!newName || newName === oldName) return;
+
+            if (!dataLedger.owners) dataLedger.owners = ["משותף"];
+
+            if (dataLedger.owners.includes(newName)) {
+                const confirmed = confirm(`הבעלים "${newName}" כבר קיים. האם למזג את כל הרשומות של "${oldName}" תחת "${newName}"?`);
+                if (!confirmed) return;
+                dataLedger.owners = dataLedger.owners.filter(o => o !== oldName);
+            } else {
+                const idx = dataLedger.owners.indexOf(oldName);
+                if (idx >= 0) {
+                    dataLedger.owners[idx] = newName;
+                } else {
+                    dataLedger.owners.push(newName);
+                }
+            }
+
+            if (dataLedger.versions) {
+                dataLedger.versions.forEach(v => {
+                    if (v.data) {
+                        v.data.forEach(item => {
+                            if (item.owner === oldName) {
+                                item.owner = newName;
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (selectedOwner === oldName) {
+                selectedOwner = newName;
+            }
+
+            renderOwnersManager();
+            renderDynamicForm();
+            renderOwnerFilterBar();
+            renderData();
         }
 
         function handleAddOwner() {
@@ -778,14 +985,12 @@
         }
 
         function renderOwnerFilterBar() {
-            // Render main overview filter bar
             const container = document.getElementById('ownerPillsContainer');
             if (container) {
                 container.innerHTML = '';
                 buildPills(container);
             }
 
-            // Render stock tab filter bar
             const stockContainer = document.getElementById('stockOwnerPillsContainer');
             if (stockContainer) {
                 stockContainer.innerHTML = '';
@@ -868,13 +1073,15 @@
             });
 
             if (type === 'stock') {
+                const manualPriceVal = dataToFill?.manualPrice !== undefined ? dataToFill.manualPrice : (dataToFill?.price || '');
                 container.innerHTML = `
                     <div class="input-group"><label>שם מניה</label><input type="text" id="dyn_name" required value="${dataToFill?.name || ''}"></div>
+                    <div class="input-group"><label>סימול / מספר נייר (אופציונלי)</label><input type="text" id="dyn_ticker" placeholder="למשל: NVDA, TEVA.TA, 5114434" value="${dataToFill?.ticker || ''}"></div>
                     <div class="input-group"><label>תיאור (אופציונלי)</label><input type="text" id="dyn_desc" value="${dataToFill?.desc || ''}"></div>
                     <div class="input-group"><label>איזור השקעה</label><input type="text" id="dyn_region" list="regionsDatalist" required placeholder="למשל: ארה״ב / ישראל" value="${dataToFill?.region || ''}"></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcStockAmount()" value="${dataToFill?.sharesCount || ''}"></div>
-                    <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcStockAmount()" value="${dataToFill?.price || ''}"></div>
+                    <div class="input-group"><label>מחיר ברירת מחדל / ידני למניה</label><input type="number" step="any" id="dyn_manualPrice" required oninput="calcStockAmount()" value="${manualPriceVal}"></div>
                     <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>רמת סיכון</label><select id="dyn_risk"><option value="נמוכה" ${dataToFill?.risk==='נמוכה'?'selected':''}>נמוכה</option><option value="בינונית" ${dataToFill?.risk==='בינונית'?'selected':''}>בינונית</option><option value="גבוהה" ${dataToFill?.risk==='גבוהה'?'selected':''}>גבוהה</option></select></div>
                     <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
@@ -898,10 +1105,12 @@
                     <div class="input-group"><label>סכום</label><input type="number" step="any" id="dyn_amount" required value="${amtVal}"></div>
                 `;
             } else if (type === 'rsu') {
+                const manualPriceVal = dataToFill?.manualPrice !== undefined ? dataToFill.manualPrice : (dataToFill?.price || '');
                 container.innerHTML = `
                     <div class="input-group"><label>שם חברה</label><input type="text" id="dyn_companyName" required value="${dataToFill?.companyName || ''}"></div>
+                    <div class="input-group"><label>סימול / מספר נייר (אופציונלי)</label><input type="text" id="dyn_ticker" placeholder="למשל: NVDA, TEVA.TA, 5114434" value="${dataToFill?.ticker || ''}"></div>
                     <div class="input-group"><label>מספר מניות</label><input type="number" step="any" id="dyn_shares" required oninput="calcRsuAmount()" value="${dataToFill?.sharesCount || ''}"></div>
-                    <div class="input-group"><label>מחיר למניה</label><input type="number" step="any" id="dyn_price" required oninput="calcRsuAmount()" value="${dataToFill?.price || ''}"></div>
+                    <div class="input-group"><label>מחיר ברירת מחדל / ידני למניה</label><input type="number" step="any" id="dyn_manualPrice" required oninput="calcRsuAmount()" value="${manualPriceVal}"></div>
                     <div class="input-group"><label>בעלות</label><select id="dyn_owner">${ownerOptionsHtml}</select></div>
                     <div class="input-group"><label>מטבע</label><select id="dyn_currency"><option value="$" ${currVal==='$'?'selected':''}>$</option><option value="₪" ${currVal==='₪'?'selected':''}>₪</option><option value="€" ${currVal==='€'?'selected':''}>€</option></select></div>
                     <div class="input-group"><label>סכום (חישוב אוטומטי)</label><input type="number" step="any" id="dyn_amount" readonly value="${amtVal}"></div>
@@ -935,13 +1144,13 @@
 
         function calcStockAmount() {
             const shares = parseFloat(document.getElementById('dyn_shares').value) || 0;
-            const price = parseFloat(document.getElementById('dyn_price').value) || 0;
+            const price = parseFloat(document.getElementById('dyn_manualPrice').value) || 0;
             document.getElementById('dyn_amount').value = (shares * price).toFixed(2);
         }
 
         function calcRsuAmount() {
             const shares = parseFloat(document.getElementById('dyn_shares').value) || 0;
-            const price = parseFloat(document.getElementById('dyn_price').value) || 0;
+            const price = parseFloat(document.getElementById('dyn_manualPrice').value) || 0;
             document.getElementById('dyn_amount').value = (shares * price).toFixed(2);
         }
 
@@ -992,6 +1201,17 @@
                 if (loadedData.rates) {
                     dataLedger.rates = { "₪": 1, "$": loadedData.rates["$"] || 3.65, "€": loadedData.rates["€"] || 3.95 };
                 }
+                if (loadedData.defaultRates) {
+                    dataLedger.defaultRates = { "₪": 1, "$": loadedData.defaultRates["$"] || 3.65, "€": loadedData.defaultRates["€"] || 3.95 };
+                } else if (loadedData.rates) {
+                    dataLedger.defaultRates = { "₪": 1, "$": loadedData.rates["$"] || 3.65, "€": loadedData.rates["€"] || 3.95 };
+                }
+                if (loadedData.ratesMeta) {
+                    dataLedger.ratesMeta = {
+                        source: loadedData.ratesMeta.source || "manual",
+                        updatedAt: loadedData.ratesMeta.updatedAt || null
+                    };
+                }
             }
 
             if (loadedData && loadedData.data && !loadedData.versions) {
@@ -1014,6 +1234,13 @@
                             if (upgraded.entryType === 'realestate') {
                                 if (upgraded.reType === undefined) upgraded.reType = upgraded.realtyType || "מגורים";
                                 if (upgraded.debt === undefined) upgraded.debt = upgraded.debtAmount || 0;
+                            }
+                            if (upgraded.entryType === 'stock' || upgraded.entryType === 'rsu') {
+                                if (upgraded.manualPrice === undefined) upgraded.manualPrice = upgraded.price || 0;
+                                if (upgraded.price === undefined) upgraded.price = upgraded.manualPrice;
+                                if (upgraded.ticker === undefined) upgraded.ticker = "";
+                                if (upgraded.priceSource === undefined) upgraded.priceSource = "manual";
+                                if (upgraded.priceDate === undefined) upgraded.priceDate = upgraded.priceUpdatedAt || null;
                             }
                             return upgraded;
                         });
@@ -1048,6 +1275,7 @@
             renderOwnersManager();
             renderDynamicForm();
             renderOwnerFilterBar();
+            updateLiveSyncStatusBadge();
             renderData();
         }
 
@@ -1060,7 +1288,7 @@
             };
             const cat = item.category;
             if (cat === "שוק ההון") {
-                return { ...base, entryType: "stock", name: item.desc || "שוק ההון", desc: "", region: "", sharesCount: 0, price: 0, risk: "בינונית" };
+                return { ...base, entryType: "stock", name: item.desc || "שוק ההון", desc: "", region: "", sharesCount: 0, price: 0, manualPrice: 0, ticker: "", priceSource: "manual", priceDate: null, risk: "בינונית" };
             } else if (cat === "עו״ש") {
                 return { ...base, entryType: "cash", cashType: "עו״ש" };
             } else if (cat === "פנסיה" || cat === "קרן השתלמות") {
@@ -1097,10 +1325,14 @@
 
             if (type === 'stock') {
                 item.name = document.getElementById('dyn_name').value;
+                item.ticker = document.getElementById('dyn_ticker').value ? document.getElementById('dyn_ticker').value.trim().toUpperCase() : "";
                 item.desc = document.getElementById('dyn_desc').value;
                 item.region = document.getElementById('dyn_region').value ? document.getElementById('dyn_region').value.trim() : "";
                 item.sharesCount = parseFloat(document.getElementById('dyn_shares').value) || 0;
-                item.price = parseFloat(document.getElementById('dyn_price').value) || 0;
+                item.manualPrice = parseFloat(document.getElementById('dyn_manualPrice').value) || 0;
+                item.price = item.manualPrice;
+                item.priceSource = "manual";
+                item.priceDate = null;
                 item.risk = document.getElementById('dyn_risk').value;
             } else if (type === 'realestate') {
                 item.name = document.getElementById('dyn_name').value;
@@ -1112,8 +1344,12 @@
                 item.fundHouse = document.getElementById('dyn_fundHouse').value;
             } else if (type === 'rsu') {
                 item.companyName = document.getElementById('dyn_companyName').value;
+                item.ticker = document.getElementById('dyn_ticker').value ? document.getElementById('dyn_ticker').value.trim().toUpperCase() : "";
                 item.sharesCount = parseFloat(document.getElementById('dyn_shares').value) || 0;
-                item.price = parseFloat(document.getElementById('dyn_price').value) || 0;
+                item.manualPrice = parseFloat(document.getElementById('dyn_manualPrice').value) || 0;
+                item.price = item.manualPrice;
+                item.priceSource = "manual";
+                item.priceDate = null;
             } else if (type === 'cash') {
                 item.cashType = document.getElementById('dyn_cashType').value;
             } else if (type === 'alternative') {
@@ -1174,7 +1410,22 @@
         }
 
         function formatCurrency(num) { return new Intl.NumberFormat('he-IL').format(Math.round(num)); }
+        function formatUnitPrice(num) {
+            const val = Number(num) || 0;
+            return new Intl.NumberFormat('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(val);
+        }
         function getCurrencySymbol(curr) { return curr || '₪'; }
+
+        function buildPriceStatusTag(item) {
+            if (item.priceSource === 'live') {
+                const dateLabel = item.priceDate || item.priceUpdatedAt || '';
+                return `<span class="tag tag-status-free" style="margin-right:5px;">שער סגירה${dateLabel ? ' (' + dateLabel + ')' : ''}</span>`;
+            }
+            if (item.priceSource === 'fallback') {
+                return `<span class="tag tag-status-fallback" style="margin-right:5px;">ברירת מחדל</span>`;
+            }
+            return `<span class="tag tag-status-manual" style="margin-right:5px;">ידני</span>`;
+        }
 
         function renderData() {
             const tables = {
@@ -1210,7 +1461,6 @@
             let grossAssetsILS = 0;
             let realEstateDebtsILS = 0;
 
-            // Stock specific charts aggregates
             let stockTotalILS = 0;
             let stockRegionMap = {};
             let stockCurrencyMap = {};
@@ -1231,16 +1481,13 @@
                     grossAssetsILS += ilsVal;
                     stockTotalILS += ilsVal;
 
-                    // Region grouping
                     let reg = item.region ? item.region.trim() : "";
                     if (!reg) reg = "לא מוגדר";
                     stockRegionMap[reg] = (stockRegionMap[reg] || 0) + ilsVal;
 
-                    // Currency grouping
                     let curr = item.currency || "₪";
                     stockCurrencyMap[curr] = (stockCurrencyMap[curr] || 0) + ilsVal;
 
-                    // Risk grouping
                     let rsk = item.risk || "בינונית";
                     if (rsk === "נמוכה") rsk = "נמוכה (אג״ח)";
                     stockRiskMap[rsk] = (stockRiskMap[rsk] || 0) + ilsVal;
@@ -1250,12 +1497,16 @@
                     } else {
                         otherStocksILS += ilsVal;
                     }
+
+                    const tickerBadge = item.ticker ? `<span class="tag" style="background:#eef2ff; color:var(--primary); margin-right:5px;">${item.ticker}</span>` : '';
+                    const priceBadge = buildPriceStatusTag(item);
+
                     tr.innerHTML = `
-                        <td><strong>${item.name || ''}</strong></td>
+                        <td><strong>${item.name || ''}</strong> ${tickerBadge}</td>
                         <td>${item.desc || '-'}</td>
                         <td>${item.region || ''}</td>
                         <td>${item.sharesCount || 0}</td>
-                        <td>${formatCurrency(item.price || 0)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${formatUnitPrice(item.price || 0)} ${getCurrencySymbol(item.currency)} ${priceBadge}</td>
                         <td>${item.owner}</td>
                         <td>${item.risk || ''}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
@@ -1268,10 +1519,14 @@
                     grossAssetsILS += ilsVal;
                     const compName = item.companyName || 'חברה כללית';
                     rsuMap[compName] = (rsuMap[compName] || 0) + ilsVal;
+
+                    const tickerBadge = item.ticker ? `<span class="tag" style="background:#eef2ff; color:var(--primary); margin-right:5px;">${item.ticker}</span>` : '';
+                    const priceBadge = buildPriceStatusTag(item);
+
                     tr.innerHTML = `
-                        <td><strong>${compName}</strong></td>
+                        <td><strong>${compName}</strong> ${tickerBadge}</td>
                         <td>${item.sharesCount || 0}</td>
-                        <td>${formatCurrency(item.price || 0)} ${getCurrencySymbol(item.currency)}</td>
+                        <td>${formatUnitPrice(item.price || 0)} ${getCurrencySymbol(item.currency)} ${priceBadge}</td>
                         <td>${item.owner}</td>
                         <td class="amount-cell">${formatCurrency(item.amount)} ${getCurrencySymbol(item.currency)}</td>
                         <td class="ils-cell">${formatCurrency(ilsVal)} ₪</td>
@@ -1398,13 +1653,11 @@
             netWorthEl.innerText = formatCurrency(netWorth) + " ₪";
             netWorthEl.style.color = netWorth >= 0 ? "var(--accent-green)" : "var(--accent-red)";
 
-            // Stock Tab KPI and Charts
             document.getElementById('kpiStockTotal').innerText = formatCurrency(stockTotal) + " ₪";
             applyPieChartWithLegend('stockRegionPieChart', 'stockRegionLegend', stockRegionMap, stockTotal);
             applyPieChartWithLegend('stockCurrencyPieChart', 'stockCurrencyLegend', stockCurrencyMap, stockTotal);
             applyPieChartWithLegend('stockRiskPieChart', 'stockRiskLegend', stockRiskMap, stockTotal);
 
-            // Build Assets Breakdown Map
             let assetsMap = {};
             for (const [comp, val] of Object.entries(rsuMap)) {
                 if (val > 0) assetsMap[`RSU: ${comp}`] = val;
